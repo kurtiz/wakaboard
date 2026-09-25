@@ -33,6 +33,10 @@
   --color-secondary-ripple: #D6EDE5;
   --color-primary-ripple: #2C7768;
   --color-card-shadow: rgba(13, 92, 77, 0.08);
+  --color-home-hero-text: #FFFFFF;
+  --color-home-hero-muted: #B7D6C5;
+  --color-home-amber: #FEA619;
+  --color-home-amber-text: #684000;
 }
 
 @layer theme {
@@ -52,6 +56,13 @@
       --color-readonly-badge: #E5F8EF;
       --color-no-code-badge: #EEF3F0;
       --color-user-badge: #E6FAF3;
+      --color-home-surface: #F5F4EE;
+      --color-home-subtle: #EFEEE8;
+      --color-home-hero: #004337;
+      --color-home-hero-chip: #275D52;
+      --color-home-hero-track: #21695A;
+      --color-home-amber-surface: #FFDEB8;
+      --color-home-mint-surface: #D8ECE6;
     }
     @variant dark {
       --color-background: #121917;
@@ -68,6 +79,13 @@
       --color-readonly-badge: #204136;
       --color-no-code-badge: #243B32;
       --color-user-badge: #204136;
+      --color-home-surface: #1B2823;
+      --color-home-subtle: #26362F;
+      --color-home-hero: #0D5C4D;
+      --color-home-hero-chip: #286F60;
+      --color-home-hero-track: #317768;
+      --color-home-amber-surface: #513916;
+      --color-home-mint-surface: #244238;
     }
   }
 }
