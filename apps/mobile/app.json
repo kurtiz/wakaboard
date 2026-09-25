@@ -31,10 +31,10 @@
     "name": "WakaBoard",
     "slug": "wakaboard",
     "android": {
-      "package": "com.empiredhv.wakaboard"
+      "package": "com.kompyler.wakaboard"
     },
     "ios": {
-      "bundleIdentifier": "com.empiredhv.wakaboard"
+      "bundleIdentifier": "com.kompyler.wakaboard"
     }
   }
 }

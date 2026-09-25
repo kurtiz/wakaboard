@@ -1,0 +1,8 @@
+{
+  "android": {
+    "package": "com.empiredhv.wakaboardworker"
+  },
+  "ios": {
+    "bundleIdentifier": "com.empiredhv.wakaboardworker"
+  }
+}

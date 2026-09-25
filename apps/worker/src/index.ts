@@ -53,13 +53,6 @@ export default {
     const session = await auth.api.getSession({ headers: request.headers });
     if (!session) return json({ error: "Sign in required" }, 401);
 
-    const start = url.searchParams.get("start");
-    const end = url.searchParams.get("end");
-    if (!validDate(start) || !validDate(end) || start > end ||
-      (new Date(`${end}T00:00:00Z`).getTime() - new Date(`${start}T00:00:00Z`).getTime()) / 86400000 > 30) {
-      return json({ error: "Choose a valid range of up to 30 days" }, 400);
-    }
-
     const account = await env.DB.prepare(
       'SELECT id FROM account WHERE userId = ? AND providerId = ? LIMIT 1',
     ).bind(session.user.id, "wakatime").first<{ id: string }>();
@@ -106,6 +99,13 @@ export default {
         range: board.range?.text ?? "This week",
         updatedAt: board.modified_at ?? null,
       });
+    }
+
+    const start = url.searchParams.get("start");
+    const end = url.searchParams.get("end");
+    if (!validDate(start) || !validDate(end) || start > end ||
+      (new Date(`${end}T00:00:00Z`).getTime() - new Date(`${start}T00:00:00Z`).getTime()) / 86400000 > 30) {
+      return json({ error: "Choose a valid range of up to 30 days" }, 400);
     }
 
     const upstream = new URL("https://wakatime.com/api/v1/users/current/summaries");

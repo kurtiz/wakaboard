@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { BackHandler, ScrollView, Text, View } from "react-native";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BrandMark, OnboardingArt } from "../components/onboarding-art";
-import { OnboardingButton } from "../components/onboarding-button";
+import { BrandMark, OnboardingArt } from "../components/onboarding/onboarding-art";
+import { OnboardingButton } from "../components/onboarding/onboarding-button";
 import { useDashboard } from "../data/dashboard-context";
 import { usePalette } from "../theme";
 
