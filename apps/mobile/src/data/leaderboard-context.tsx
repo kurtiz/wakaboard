@@ -11,7 +11,7 @@ type LeaderboardContextValue = {
   currentProfile: MemberProfile | null;
   loading: boolean;
   error: string | null;
-  refresh: () => Promise<void>;
+  refresh: () => Promise<boolean>;
   clear: () => void;
 };
 
@@ -55,8 +55,10 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
         saveCachedLeaderboard(session.user.id, global),
         saveCachedLeaderboard(session.user.id, country),
       ]);
+      return true;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "The leaderboard could not be loaded.");
+      return false;
     } finally {
       setLoading(false);
     }

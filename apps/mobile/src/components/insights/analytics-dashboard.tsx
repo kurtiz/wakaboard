@@ -10,6 +10,7 @@ import Animated from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboard } from "../../data/dashboard-context";
+import { HapticPreset } from "../../constants/haptics";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
 import { SegmentedPicker } from "../ui/segmented-picker";
@@ -184,7 +185,7 @@ export function AnalyticsDashboard() {
       <RangePicker range={range} onChange={(next) => { setRange(next); setSelectedBucket(null); }} />
       <DigestCard data={data} range={range} palette={palette} />
       {loading ? <Text style={{ color: palette.muted, fontSize: 13 }}>Loading saved activity…</Text> : error ? <Text accessibilityRole="alert" style={{ color: palette.error, fontSize: 13 }}>{error}</Text> : null}
-      <CadenceCard data={data} selectedIndex={selectedIndex} onSelect={setSelectedBucket} palette={palette} />
+      <CadenceCard data={data} selectedIndex={selectedIndex} onSelect={(index) => { if (index !== selectedIndex) void HapticPreset.selection(); setSelectedBucket(index); }} palette={palette} />
       <HighlightCard data={data} palette={palette} />
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 2 }}>
         <Text accessibilityRole="header" style={{ color: palette.text, fontSize: 19, fontWeight: "800" }}>Habit distribution</Text>

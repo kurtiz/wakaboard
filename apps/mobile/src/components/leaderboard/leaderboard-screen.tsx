@@ -9,6 +9,7 @@ import Animated from "react-native-reanimated";
 import { useLeaderboards } from "../../data/leaderboard-context";
 import type { Leader, LeaderboardScope } from "../../data/leaderboards";
 import { usePalette } from "../../theme";
+import { runManualRefresh } from "../../haptic-actions";
 import { ScaleButton } from "../ui/scale-button";
 import { SegmentedPicker } from "../ui/segmented-picker";
 import { useLeaderboardScope } from "./leaderboard-scope";
@@ -107,7 +108,7 @@ export function LeaderboardScreen() {
   const updatedLabel = updated && !Number.isNaN(updated.getTime()) ? `Updated ${updated.toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : "WakaTime rankings";
 
   return <AndroidPageFrame title="Leaderboards" offset={offset}>
-    <Animated.ScrollView contentInsetAdjustmentBehavior="automatic" onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined} scrollEventThrottle={16} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void refresh()} tintColor={palette.primary} />} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 17, paddingBottom: board ? 220 : 30, gap: 18 }}>
+    <Animated.ScrollView contentInsetAdjustmentBehavior="automatic" onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined} scrollEventThrottle={16} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void runManualRefresh(async () => await refresh() ? "success" : "error", true)} tintColor={palette.primary} />} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 17, paddingBottom: board ? 220 : 30, gap: 18 }}>
       <AndroidLargeTitle title="Leaderboards" offset={offset} />
       <ScopeSelector scope={scope} countryCode={countryCode} onChange={setScope} palette={palette} />
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -118,7 +119,7 @@ export function LeaderboardScreen() {
       {error && !board ? <View style={{ gap: 12, padding: 18, borderRadius: 22, backgroundColor: palette.homeSurface }}>
         <Text accessibilityRole="header" style={{ color: palette.text, fontSize: 18, fontWeight: "800" }}>Rankings unavailable</Text>
         <Text accessibilityRole="alert" style={{ color: palette.muted, fontSize: 13, lineHeight: 19 }}>{error}</Text>
-        <ScaleButton label="Try loading rankings again" onPress={() => void refresh()} glass="regular" style={{ alignSelf: "flex-start", paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999, backgroundColor: palette.homeHero }}><Text style={{ color: palette.homeHeroText, fontWeight: "700" }}>Try again</Text></ScaleButton>
+        <ScaleButton label="Try loading rankings again" onPress={() => void runManualRefresh(async () => await refresh() ? "success" : "error")} glass="regular" style={{ alignSelf: "flex-start", paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999, backgroundColor: palette.homeHero }}><Text style={{ color: palette.homeHeroText, fontWeight: "700" }}>Try again</Text></ScaleButton>
         <ScaleButton label="Check WakaTime connection" onPress={() => router.push("/(tabs)/(settings)")} style={{ alignSelf: "flex-start", paddingVertical: 4 }}><Text style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>Check WakaTime connection</Text></ScaleButton>
       </View> : null}
       {error && board ? <Text accessibilityRole="alert" style={{ color: palette.muted, fontSize: 11 }}>Showing saved rankings. {error}</Text> : null}

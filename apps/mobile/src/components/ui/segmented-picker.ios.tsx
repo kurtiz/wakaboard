@@ -1,4 +1,5 @@
 import NativeSegmentedControl from "@expo/ui/community/segmented-control";
+import { HapticPreset } from "../../constants/haptics";
 import { usePalette } from "../../theme";
 import type { SegmentedPickerProps } from "./segmented-picker.types";
 
@@ -9,7 +10,10 @@ export function SegmentedPicker<T extends string | number>({ options, value, onC
     selectedIndex={options.findIndex((option) => option.value === value)}
     onChange={(event) => {
       const next = options[event.nativeEvent.selectedSegmentIndex];
-      if (next && next.value !== value) onChange(next.value);
+      if (next && next.value !== value) {
+        void HapticPreset.selection();
+        onChange(next.value);
+      }
     }}
     appearance={palette.scheme}
     style={{ width: "100%", height: 46 }}

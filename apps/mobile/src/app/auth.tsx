@@ -6,6 +6,7 @@ import { ActivityIndicator, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BrandMark, OnboardingArt } from "../components/onboarding/onboarding-art";
 import { OnboardingButton } from "../components/onboarding/onboarding-button";
+import { HapticPreset } from "../constants/haptics";
 import { useDashboard } from "../data/dashboard-context";
 import { useLeaderboards } from "../data/leaderboard-context";
 import { authClient, wakatimeConnectionAvailable } from "../data/wakatime-client";
@@ -27,10 +28,12 @@ export default function AuthScreen() {
       if (authError) throw new Error(authError.message);
       const { data: session } = await authClient.getSession();
       if (!session?.user) throw new Error("WakaTime sign-in did not finish. Please try again.");
+      void HapticPreset.confirm();
       router.replace("/(tabs)/(home)");
       void Promise.allSettled([syncWakaTime(), refreshLeaderboards()]);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not sign in. Try again.");
+      void HapticPreset.error();
     } finally {
       setBusy(false);
     }

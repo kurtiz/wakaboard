@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 import { usePalette } from "../../theme";
+import { HapticPreset } from "../../constants/haptics";
 import type { SegmentedPickerProps } from "./segmented-picker.types";
 
 export function SegmentedPicker<T extends string | number>({ options, value, onChange, renderLeading }: SegmentedPickerProps<T>) {
@@ -33,6 +34,7 @@ export function SegmentedPicker<T extends string | number>({ options, value, onC
 
   function select(nextValue: T, index: number) {
     if (selectedValue.current === nextValue) return;
+    void HapticPreset.selection();
     selectedValue.current = nextValue;
     if (segmentWidth) {
       const target = index * segmentWidth;

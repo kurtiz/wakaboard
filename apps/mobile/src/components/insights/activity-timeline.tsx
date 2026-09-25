@@ -5,7 +5,6 @@ import { CalendarBlankIcon } from "phosphor-react-native/src/icons/CalendarBlank
 import { CaretDownIcon } from "phosphor-react-native/src/icons/CaretDown";
 import { CaretLeftIcon } from "phosphor-react-native/src/icons/CaretLeft";
 import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
-import { ClockClockwiseIcon } from "phosphor-react-native/src/icons/ClockClockwise";
 import { LockKeyIcon } from "phosphor-react-native/src/icons/LockKey";
 import { ShareNetworkIcon } from "phosphor-react-native/src/icons/ShareNetwork";
 import { useMemo, useRef, useState } from "react";
@@ -14,6 +13,8 @@ import Animated from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboard } from "../../data/dashboard-context";
+import { HapticPreset } from "../../constants/haptics";
+import { runManualRefresh, type RefreshOutcome } from "../../haptic-actions";
 import { authClient, wakatimeConnectionAvailable } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
@@ -153,6 +154,7 @@ export function ActivityTimeline() {
   const { offset, onScroll } = useAndroidPageScroll();
   const insets = useSafeAreaInsets();
   const { summaries, goalSeconds, syncing, syncWakaTime, refresh } = useDashboard();
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   const todayKey = useMemo(() => localDateKey(new Date()), []);
   const [selectedKey, setSelectedKey] = useState(todayKey);
   const [projectFilter, setProjectFilter] = useState<string | null>(null);
@@ -165,15 +167,28 @@ export function ActivityTimeline() {
   const visibleProjects = projectFilter ? projects.filter((project) => project.name === projectFilter) : projects;
 
   function selectDay(key: string) {
+    if (key !== selectedKey) void HapticPreset.selection();
     setSelectedKey(key);
     setProjectFilter(null);
     setPickerOpen(false);
     filterScroll.current?.scrollTo({ x: 0, animated: false });
   }
 
-  async function refreshActivity() {
-    if (wakatimeConnectionAvailable && await authClient.getCookie()) await syncWakaTime();
-    else await refresh();
+  function selectProject(name: string | null) {
+    if (name === projectFilter) return;
+    void HapticPreset.selection();
+    setProjectFilter(name);
+  }
+
+  async function refreshActivity(): Promise<RefreshOutcome> {
+    if (wakatimeConnectionAvailable && await authClient.getCookie()) return syncWakaTime();
+    await refresh();
+    return "local";
+  }
+
+  function onPullRefresh() {
+    setPullRefreshing(true);
+    void runManualRefresh(refreshActivity, true).finally(() => setPullRefreshing(false));
   }
 
   async function shareDay() {
@@ -192,7 +207,7 @@ export function ActivityTimeline() {
       contentInsetAdjustmentBehavior="automatic"
       onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined}
       scrollEventThrottle={16}
-      refreshControl={<RefreshControl refreshing={syncing} onRefresh={() => void refreshActivity()} tintColor={palette.primary} />}
+      refreshControl={<RefreshControl refreshing={syncing || pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.primary} />}
       style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 17, paddingHorizontal: 16, paddingTop: 12, paddingBottom: Math.max(36, insets.bottom + 24) }}
     >
@@ -218,8 +233,8 @@ export function ActivityTimeline() {
       <DayHero summary={summary} goalSeconds={goalSeconds} palette={palette} />
       {summary && projects.length ? <>
         <ScrollView ref={filterScroll} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
-          <ScaleButton label="Show all project activity" selected={!projectFilter} onPress={() => setProjectFilter(null)} style={{ minHeight: 38, paddingHorizontal: 14, borderRadius: 999, alignItems: "center", justifyContent: "center", backgroundColor: !projectFilter ? palette.primary : palette.homeSubtle }}><Text style={{ color: !projectFilter ? palette.onPrimary : palette.text, fontSize: 11, fontWeight: "800" }}>All activity</Text></ScaleButton>
-          {projects.map((project) => <ScaleButton key={project.name} label={`Show ${project.name} activity`} selected={projectFilter === project.name} onPress={() => setProjectFilter(project.name)} style={{ minHeight: 38, maxWidth: 200, paddingHorizontal: 14, borderRadius: 999, alignItems: "center", justifyContent: "center", backgroundColor: projectFilter === project.name ? palette.primary : palette.homeSubtle }}><Text numberOfLines={1} style={{ color: projectFilter === project.name ? palette.onPrimary : palette.text, fontSize: 11, fontWeight: "700" }}>{project.name} · {formatDuration(project.seconds)}</Text></ScaleButton>)}
+          <ScaleButton label="Show all project activity" selected={!projectFilter} onPress={() => selectProject(null)} style={{ minHeight: 38, paddingHorizontal: 14, borderRadius: 999, alignItems: "center", justifyContent: "center", backgroundColor: !projectFilter ? palette.primary : palette.homeSubtle }}><Text style={{ color: !projectFilter ? palette.onPrimary : palette.text, fontSize: 11, fontWeight: "800" }}>All activity</Text></ScaleButton>
+          {projects.map((project) => <ScaleButton key={project.name} label={`Show ${project.name} activity`} selected={projectFilter === project.name} onPress={() => selectProject(project.name)} style={{ minHeight: 38, maxWidth: 200, paddingHorizontal: 14, borderRadius: 999, alignItems: "center", justifyContent: "center", backgroundColor: projectFilter === project.name ? palette.primary : palette.homeSubtle }}><Text numberOfLines={1} style={{ color: projectFilter === project.name ? palette.onPrimary : palette.text, fontSize: 11, fontWeight: "700" }}>{project.name} · {formatDuration(project.seconds)}</Text></ScaleButton>)}
         </ScrollView>
         <View style={{ gap: 4 }}><Text accessibilityRole="header" style={{ color: palette.text, fontSize: 19, fontWeight: "800" }}>Project activity</Text><Text style={{ color: palette.muted, fontSize: 11 }}>By coding time on this day</Text></View>
         <ProjectTimeline projects={visibleProjects} totalSeconds={summary.totalSeconds} palette={palette} />
@@ -233,7 +248,6 @@ export function ActivityTimeline() {
       </> : <View style={{ borderRadius: 23, padding: 20, gap: 7, backgroundColor: palette.card }}><Text style={{ color: palette.text, fontSize: 16, fontWeight: "800" }}>{summary ? "No project details" : "A quiet day"}</Text><Text style={{ color: palette.muted, fontSize: 13, lineHeight: 19 }}>{summary ? "No project breakdown was saved for this day." : "No coding activity is saved for this date. Choose another day or pull down to refresh."}</Text></View>}
       <ScaleButton label="Open Analytics" onPress={() => router.navigate("/(tabs)/(insights)")} glass="regular" style={{ minHeight: 50, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 999, backgroundColor: palette.primary }}><Text style={{ color: palette.onPrimary, fontSize: 13, fontWeight: "800" }}>View Analytics</Text><CaretRightIcon color={palette.onPrimary} size={17} weight="bold" /></ScaleButton>
       <View style={{ alignItems: "center", gap: 5, paddingVertical: 8 }}><View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><LockKeyIcon color={palette.primary} size={14} weight="bold" /><Text style={{ color: palette.muted, fontSize: 11, fontWeight: "700" }}>Private & offline first</Text></View><Text style={{ color: palette.muted, fontSize: 10, textAlign: "center" }}>Daily totals and breakdowns are cached locally.</Text></View>
-      <ScaleButton label="Refresh activity" onPress={() => void refreshActivity()} style={{ alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 5, padding: 8 }}><ClockClockwiseIcon color={palette.primary} size={16} weight="bold" /><Text style={{ color: palette.primary, fontSize: 11, fontWeight: "700" }}>Refresh activity</Text></ScaleButton>
     </Animated.ScrollView>
     <DayPicker visible={pickerOpen} dates={dates} selectedKey={selectedKey} todayKey={todayKey} onSelect={selectDay} onClose={() => setPickerOpen(false)} palette={palette} />
   </AndroidPageFrame>;

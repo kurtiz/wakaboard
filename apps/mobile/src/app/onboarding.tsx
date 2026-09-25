@@ -7,6 +7,7 @@ import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BrandMark, OnboardingArt } from "../components/onboarding/onboarding-art";
 import { OnboardingButton } from "../components/onboarding/onboarding-button";
+import { HapticPreset } from "../constants/haptics";
 import { useDashboard } from "../data/dashboard-context";
 import { usePalette } from "../theme";
 
@@ -49,6 +50,7 @@ export default function OnboardingScreen() {
     const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
       setError(null);
       setStep((current) => Math.max(0, current - 1));
+      void HapticPreset.back();
       return true;
     });
     return () => subscription.remove();
@@ -59,9 +61,11 @@ export default function OnboardingScreen() {
     setError(null);
     try {
       await completeOnboarding();
+      void HapticPreset.confirm();
       router.replace("/auth");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not finish the introduction. Try again.");
+      void HapticPreset.error();
     } finally {
       setBusy(false);
     }
@@ -75,7 +79,7 @@ export default function OnboardingScreen() {
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44 }}>
         <BrandMark />
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          {step > 0 && <OnboardingButton label="Back" compact secondary disabled={busy} onPress={() => { setError(null); setStep(step - 1); }} />}
+          {step > 0 && <OnboardingButton label="Back" compact secondary disabled={busy} onPress={() => { setError(null); setStep(step - 1); void HapticPreset.back(); }} />}
           {step < 2 ? (
             <OnboardingButton label="Skip" compact secondary disabled={busy} onPress={() => void finish()} />
           ) : (
@@ -111,14 +115,14 @@ export default function OnboardingScreen() {
         <OnboardingButton
           label={step < 2 ? "Continue" : busy ? "Continuing…" : "Continue to sign in"}
           disabled={busy}
-          onPress={() => step < 2 ? (setError(null), setStep(step + 1)) : void finish()}
+          onPress={() => { if (step < 2) { setError(null); setStep(step + 1); void HapticPreset.next(); } else void finish(); }}
           trailing={<CaretRightIcon color={palette.onPrimary} size={19} weight="bold" />}
         />
         <OnboardingButton
           label={slide.secondary}
           secondary
           disabled={busy}
-          onPress={() => step === 2 ? (setError(null), setStep(1)) : void finish()}
+          onPress={() => { if (step === 2) { setError(null); setStep(1); void HapticPreset.back(); } else void finish(); }}
         />
         <Text style={{ color: palette.muted, fontSize: 10, textAlign: "center", lineHeight: 15 }}>{slide.footer}</Text>
       </View>

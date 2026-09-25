@@ -30,6 +30,8 @@ type DashboardState = {
   syncError: string | null;
 };
 
+export type SyncOutcome = "success" | "partial" | "error";
+
 type DashboardContextValue = DashboardState & {
   refresh: () => Promise<void>;
   addSample: () => Promise<void>;
@@ -37,13 +39,13 @@ type DashboardContextValue = DashboardState & {
   clearWakaTime: () => Promise<void>;
   setGoalHours: (hours: number) => Promise<void>;
   completeOnboarding: () => Promise<void>;
-  syncWakaTime: () => Promise<void>;
+  syncWakaTime: () => Promise<SyncOutcome>;
 };
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
-  const syncInFlight = useRef<Promise<void> | null>(null);
+  const syncInFlight = useRef<Promise<SyncOutcome> | null>(null);
   const [state, setState] = useState<DashboardState>({
     summaries: [],
     goalSeconds: 4 * 3600,
@@ -67,7 +69,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const runSync = useCallback((showError: boolean): Promise<void> => {
+  const runSync = useCallback((showError: boolean): Promise<SyncOutcome> => {
     if (syncInFlight.current) return syncInFlight.current;
     const task = (async () => {
       setState((current) => ({ ...current, syncing: true, syncError: null }));
@@ -89,9 +91,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         await clearSampleSummaries();
         await Promise.all(summaries.map((summary) => saveSummary(summary)));
         await refresh();
-        if (showError && results.some((result) => result.status === "rejected")) {
+        const partial = results.some((result) => result.status === "rejected");
+        if (showError && partial) {
           setState((current) => ({ ...current, syncError: "Recent activity was saved, but some older days could not be synced." }));
         }
+        return partial ? "partial" : "success";
       } catch (error) {
         if (showError) {
           setState((current) => ({
@@ -99,6 +103,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             syncError: error instanceof Error ? error.message : "Activity could not be synced.",
           }));
         }
+        return "error";
       } finally {
         setState((current) => ({ ...current, syncing: false }));
       }

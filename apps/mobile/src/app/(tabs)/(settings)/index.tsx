@@ -7,10 +7,12 @@ import { Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../../../components/navigation/android-page-header";
 import { Text as AppText } from "../../../components/ui/app-text";
+import { HapticPreset } from "../../../constants/haptics";
 import { useDashboard } from "../../../data/dashboard-context";
 import { useLeaderboards } from "../../../data/leaderboard-context";
 import { authClient, wakatimeConnectionAvailable } from "../../../data/wakatime-client";
 import { useFontChoice } from "../../../font-choice";
+import { runManualRefresh } from "../../../haptic-actions";
 import { usePalette } from "../../../theme";
 
 export default function SettingsScreen() {
@@ -24,6 +26,8 @@ export default function SettingsScreen() {
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
   const [accountBusy, setAccountBusy] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
+  const [goalError, setGoalError] = useState<string | null>(null);
+  const [dataError, setDataError] = useState<string | null>(null);
   const selectedHours = draftHours ?? goalSeconds / 3600;
   const hasSample = summaries.some((day) => day.source === "sample");
 
@@ -44,8 +48,10 @@ export default function SettingsScreen() {
       const { data } = await authClient.getSession();
       setAccountEmail(data?.user.email ?? null);
       if (data?.user) await Promise.all([syncWakaTime(), refreshLeaderboards()]);
+      if (data?.user) void HapticPreset.confirm();
     } catch (error) {
       setAccountError(error instanceof Error ? error.message : "WakaTime sign-in failed.");
+      void HapticPreset.error();
     } finally {
       setAccountBusy(false);
     }
@@ -60,9 +66,11 @@ export default function SettingsScreen() {
       await clearWakaTime();
       clearLeaderboards();
       setAccountEmail(null);
+      void HapticPreset.confirm();
       router.replace("/auth");
     } catch (error) {
       setAccountError(error instanceof Error ? error.message : "Could not sign out.");
+      void HapticPreset.error();
     } finally {
       setAccountBusy(false);
     }
@@ -70,12 +78,34 @@ export default function SettingsScreen() {
 
   async function saveGoal() {
     setSaving(true);
+    setGoalError(null);
     try {
       await setGoalHours(selectedHours);
       setDraftHours(null);
+      void HapticPreset.confirm();
+    } catch (error) {
+      setGoalError(error instanceof Error ? error.message : "Could not save your goal.");
+      void HapticPreset.error();
     } finally {
       setSaving(false);
     }
+  }
+
+  async function removeSample() {
+    setDataError(null);
+    try {
+      await clearSample();
+      void HapticPreset.confirm();
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Could not remove sample activity.");
+      void HapticPreset.error();
+    }
+  }
+
+  function chooseFont(choice: "Nunito" | "Outfit") {
+    if (font === choice) return;
+    void HapticPreset.selection();
+    setFont(choice);
   }
 
   if (process.env.EXPO_OS === "android") return <AndroidPageFrame title="Settings" offset={offset}>
@@ -85,14 +115,14 @@ export default function SettingsScreen() {
         <AppText style={{ color: palette.text, fontSize: 17, fontWeight: "800" }}>App font</AppText>
         <AppText style={{ color: palette.muted, fontSize: 13 }}>See how each font looks across the app.</AppText>
         <View style={{ flexDirection: "row", gap: 10 }}>
-          {(["Nunito", "Outfit"] as const).map((choice) => <Pressable key={choice} accessibilityRole="button" accessibilityState={{ selected: font === choice }} onPress={() => setFont(choice)} style={{ flex: 1, paddingVertical: 12, borderRadius: 14, alignItems: "center", backgroundColor: font === choice ? palette.primary : palette.homeSubtle }}><AppText style={{ color: font === choice ? palette.onPrimary : palette.text, fontSize: 14, fontWeight: "800" }}>{choice}</AppText></Pressable>)}
+          {(["Nunito", "Outfit"] as const).map((choice) => <Pressable key={choice} accessibilityRole="button" accessibilityState={{ selected: font === choice }} onPress={() => chooseFont(choice)} style={{ flex: 1, paddingVertical: 12, borderRadius: 14, alignItems: "center", backgroundColor: font === choice ? palette.primary : palette.homeSubtle }}><AppText style={{ color: font === choice ? palette.onPrimary : palette.text, fontSize: 14, fontWeight: "800" }}>{choice}</AppText></Pressable>)}
         </View>
       </View>
       {wakatimeConnectionAvailable ? <View style={{ padding: 18, borderRadius: 22, backgroundColor: palette.card, gap: 12 }}>
         <AppText style={{ color: palette.text, fontSize: 17, fontWeight: "800" }}>WakaTime</AppText>
         <AppText style={{ color: palette.muted, fontSize: 13 }}>{accountEmail ? `Connected as ${accountEmail}` : "Connect to see your real coding activity."}</AppText>
         {accountEmail ? <>
-          <Pressable accessibilityRole="button" disabled={syncing || accountBusy} onPress={() => void syncWakaTime()} style={{ padding: 13, borderRadius: 14, alignItems: "center", backgroundColor: palette.primary, opacity: syncing || accountBusy ? 0.5 : 1 }}><AppText style={{ color: palette.onPrimary, fontWeight: "800" }}>{syncing ? "Syncing…" : "Sync activity"}</AppText></Pressable>
+          <Pressable accessibilityRole="button" disabled={syncing || accountBusy} onPress={() => void runManualRefresh(syncWakaTime)} style={{ padding: 13, borderRadius: 14, alignItems: "center", backgroundColor: palette.primary, opacity: syncing || accountBusy ? 0.5 : 1 }}><AppText style={{ color: palette.onPrimary, fontWeight: "800" }}>{syncing ? "Syncing…" : "Sync activity"}</AppText></Pressable>
           <Pressable accessibilityRole="button" disabled={accountBusy || syncing} onPress={() => void signOut()} style={{ padding: 13, alignItems: "center" }}><AppText style={{ color: palette.error, fontWeight: "800" }}>Sign out</AppText></Pressable>
         </> : <Pressable accessibilityRole="button" disabled={accountBusy} onPress={() => void connect()} style={{ padding: 13, borderRadius: 14, alignItems: "center", backgroundColor: palette.primary, opacity: accountBusy ? 0.5 : 1 }}><AppText style={{ color: palette.onPrimary, fontWeight: "800" }}>{accountBusy ? "Connecting…" : "Connect WakaTime"}</AppText></Pressable>}
         {accountError || syncError ? <AppText accessibilityRole="alert" style={{ color: palette.error, fontSize: 13 }}>{accountError ?? syncError}</AppText> : null}
@@ -104,12 +134,14 @@ export default function SettingsScreen() {
           <Slider value={selectedHours} min={0.5} max={12} step={0.5} onValueChange={setDraftHours} disabled={saving} testID="daily-goal-slider" />
         </Host>
         <Pressable accessibilityRole="button" disabled={saving} onPress={() => void saveGoal()} style={{ padding: 13, borderRadius: 14, alignItems: "center", backgroundColor: palette.primary, opacity: saving ? 0.5 : 1 }}><AppText style={{ color: palette.onPrimary, fontWeight: "800" }}>{saving ? "Saving…" : "Save goal"}</AppText></Pressable>
+        {goalError ? <AppText accessibilityRole="alert" style={{ color: palette.error, fontSize: 12 }}>{goalError}</AppText> : null}
         <AppText style={{ color: palette.muted, fontSize: 12 }}>Choose between 30 minutes and 12 hours. Your goal is saved on this device.</AppText>
       </View>
       <View style={{ padding: 18, borderRadius: 22, backgroundColor: palette.card, gap: 12 }}>
         <AppText style={{ color: palette.text, fontSize: 17, fontWeight: "800" }}>Your data</AppText>
         <AppText style={{ color: palette.muted, fontSize: 13 }}>Activity is saved on this device for quick, offline viewing.</AppText>
-        {hasSample ? <Pressable accessibilityRole="button" onPress={() => void clearSample()} style={{ padding: 13, borderRadius: 14, alignItems: "center", backgroundColor: palette.homeSubtle }}><AppText style={{ color: palette.text, fontWeight: "800" }}>Remove sample activity</AppText></Pressable> : null}
+        {hasSample ? <Pressable accessibilityRole="button" onPress={() => void removeSample()} style={{ padding: 13, borderRadius: 14, alignItems: "center", backgroundColor: palette.homeSubtle }}><AppText style={{ color: palette.text, fontWeight: "800" }}>Remove sample activity</AppText></Pressable> : null}
+        {dataError ? <AppText accessibilityRole="alert" style={{ color: palette.error, fontSize: 12 }}>{dataError}</AppText> : null}
       </View>
     </Animated.ScrollView>
   </AndroidPageFrame>;
@@ -121,8 +153,8 @@ export default function SettingsScreen() {
           <Text textStyle={{ fontSize: 15, color: palette.text, fontFamily: font }}>
             See how each font looks across the app.
           </Text>
-          <Button label={font === "Nunito" ? "✓ Nunito" : "Nunito"} onPress={() => setFont("Nunito")} />
-          <Button label={font === "Outfit" ? "✓ Outfit" : "Outfit"} onPress={() => setFont("Outfit")} />
+          <Button label={font === "Nunito" ? "✓ Nunito" : "Nunito"} onPress={() => chooseFont("Nunito")} />
+          <Button label={font === "Outfit" ? "✓ Outfit" : "Outfit"} onPress={() => chooseFont("Outfit")} />
           <FieldGroup.SectionFooter>
             <Text textStyle={{ fontSize: 13, color: palette.muted }}>
               Switch fonts, then browse Home, Insights, and Leaderboard to compare.
@@ -136,7 +168,7 @@ export default function SettingsScreen() {
             </Text>
             {accountEmail ? (
               <>
-                <Button label={syncing ? "Syncing…" : "Sync activity"} disabled={syncing || accountBusy} onPress={() => void syncWakaTime()} />
+                <Button label={syncing ? "Syncing…" : "Sync activity"} disabled={syncing || accountBusy} onPress={() => void runManualRefresh(syncWakaTime)} />
                 <Button label="Sign out" variant="text" disabled={accountBusy || syncing} onPress={() => void signOut()} />
               </>
             ) : (
@@ -167,6 +199,7 @@ export default function SettingsScreen() {
             disabled={saving}
             onPress={() => void saveGoal()}
           />
+          {goalError ? <Text textStyle={{ fontSize: 13, color: palette.error }}>{goalError}</Text> : null}
           <FieldGroup.SectionFooter>
             <Text textStyle={{ fontSize: 13, color: palette.muted }}>
               Choose between 30 minutes and 12 hours. Your goal is saved on this device.
@@ -182,9 +215,10 @@ export default function SettingsScreen() {
             <Button
               label="Remove sample activity"
               variant="outlined"
-              onPress={() => void clearSample()}
+              onPress={() => void removeSample()}
             />
           )}
+          {dataError ? <Text textStyle={{ fontSize: 13, color: palette.error }}>{dataError}</Text> : null}
           <FieldGroup.SectionFooter>
             <Text textStyle={{ fontSize: 13, color: palette.muted }}>
               Sample activity is clearly marked and can be removed at any time.

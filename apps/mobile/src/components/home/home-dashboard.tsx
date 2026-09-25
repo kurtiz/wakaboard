@@ -12,6 +12,7 @@ import { OnboardingButton } from "../onboarding/onboarding-button";
 import { ChevronLink } from "../ui/chevron-link";
 import { BrandMark } from "../ui/brand-mark";
 import { useDashboard } from "../../data/dashboard-context";
+import { runManualRefresh, type RefreshOutcome } from "../../haptic-actions";
 import { useLeaderboards } from "../../data/leaderboard-context";
 import { authClient, wakatimeConnectionAvailable } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
@@ -61,8 +62,7 @@ function SectionTitle({ title, kicker, trailing, palette }: { title: string; kic
   );
 }
 
-function HomeHeader({ today, name, profile, syncing, sample, hasActivity, onSync, palette }: { today: Date; name: string | null; profile: MemberProfile | null; syncing: boolean; sample: boolean; hasActivity: boolean; onSync: () => void; palette: Palette }) {
-  const syncPress = usePressScale();
+function HomeHeader({ today, name, profile, syncing, sample, hasActivity, palette }: { today: Date; name: string | null; profile: MemberProfile | null; syncing: boolean; sample: boolean; hasActivity: boolean; palette: Palette }) {
   const profilePress = usePressScale();
   const hour = today.getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
@@ -75,11 +75,6 @@ function HomeHeader({ today, name, profile, syncing, sample, hasActivity, onSync
           <Text style={{ color: palette.text, fontSize: 21, fontWeight: "800" }}>WakaBoard</Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
-          <Animated.View style={syncPress.style}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Sync activity" disabled={syncing} onPress={onSync} onPressIn={syncPress.onPressIn} onPressOut={syncPress.onPressOut} style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: android ? "transparent" : palette.homeSurface, opacity: pressed ? 0.65 : 1 })}>
-              <Text style={{ color: palette.text, fontSize: 25, lineHeight: 29 }}>↻</Text>
-            </Pressable>
-          </Animated.View>
           <Animated.View style={profilePress.style}>
             <Link href="/profile/current" asChild><Pressable accessibilityRole="button" accessibilityLabel="Open your WakaTime profile" onPressIn={profilePress.onPressIn} onPressOut={profilePress.onPressOut} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: palette.homeHero, alignItems: "center", justifyContent: "center" }}><MemberAvatar id={profile?.id ?? "current"} name={profile?.name ?? name ?? "You"} photo={profile?.photo} size={38} dark fallbackText="YOU" /></Pressable></Link>
           </Animated.View>
@@ -260,6 +255,7 @@ export function HomeDashboard() {
   const palette = usePalette();
   const { offset, onScroll } = useAndroidPageScroll();
   const { summaries, goalSeconds, loading, error, syncing, syncError, addSample, refresh, syncWakaTime } = useDashboard();
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   const { currentProfile, refresh: refreshLeaderboards } = useLeaderboards();
   const [name, setName] = useState<string | null>(null);
   const today = useMemo(() => new Date(), []);
@@ -278,9 +274,18 @@ export function HomeDashboard() {
     void authClient.getSession().then(({ data }) => setName(data?.user.name?.split(" ")[0] ?? null)).catch(() => {});
   }, []);
 
-  async function refreshActivity() {
-    if (wakatimeConnectionAvailable && await authClient.getCookie()) await Promise.all([syncWakaTime(), refreshLeaderboards()]);
-    else await refresh();
+  async function refreshActivity(): Promise<RefreshOutcome> {
+    if (wakatimeConnectionAvailable && await authClient.getCookie()) {
+      const [activity, leaders] = await Promise.all([syncWakaTime(), refreshLeaderboards()]);
+      return activity === "success" && !leaders ? "partial" : activity;
+    }
+    await refresh();
+    return "local";
+  }
+
+  function onPullRefresh() {
+    setPullRefreshing(true);
+    void runManualRefresh(refreshActivity, true).finally(() => setPullRefreshing(false));
   }
 
   return (
@@ -289,12 +294,12 @@ export function HomeDashboard() {
       contentInsetAdjustmentBehavior="automatic"
       onScroll={android ? onScroll : undefined}
       scrollEventThrottle={16}
-      refreshControl={<RefreshControl refreshing={syncing} onRefresh={() => void refreshActivity()} tintColor={palette.accent} />}
+      refreshControl={<RefreshControl refreshing={syncing || pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.accent} />}
       style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 16, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 38 }}
     >
       <AndroidLargeTitle title="Today" offset={offset} />
-      <HomeHeader today={today} name={name} profile={currentProfile} syncing={syncing} sample={sample} hasActivity={summaries.length > 0} onSync={() => void refreshActivity()} palette={palette} />
+      <HomeHeader today={today} name={name} profile={currentProfile} syncing={syncing} sample={sample} hasActivity={summaries.length > 0} palette={palette} />
       {syncError ? <Text accessibilityRole="alert" style={{ color: palette.error, fontSize: 13 }}>{syncError}</Text> : null}
       {loading ? <ActivityIndicator color={palette.accent} style={{ paddingVertical: 65 }} /> : error ? <SurfaceCard palette={palette}><Text style={{ color: palette.text, fontWeight: "800" }}>Local data unavailable</Text><Text style={{ color: palette.muted }}>{error}</Text><OnboardingButton label="Try again" onPress={() => void refresh()} /></SurfaceCard> : summaries.length === 0 ? <SurfaceCard palette={palette}><SectionTitle title="Make your coding visible" palette={palette} /><Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>Your WakaTime activity will appear after your first sync. You can explore with sample data meanwhile.</Text><OnboardingButton label="Explore sample data" onPress={() => void addSample()} /></SurfaceCard> : <>
         {sample ? <Text style={{ color: palette.primary, fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>SAMPLE ACTIVITY</Text> : null}
