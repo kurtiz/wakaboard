@@ -8,6 +8,7 @@ import { useLeaderboards } from "../../data/leaderboard-context";
 import type { Leader, LeaderboardScope } from "../../data/leaderboards";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
+import { SegmentedPicker } from "../ui/segmented-picker";
 import { useLeaderboardScope } from "./leaderboard-scope";
 import { StandingOverlay } from "./standing-overlay";
 
@@ -34,21 +35,17 @@ function initials(name: string): string {
 function ScopeSelector({ scope, countryCode, onChange, palette }: {
   scope: LeaderboardScope; countryCode: string | null; onChange: (scope: LeaderboardScope) => void; palette: Palette;
 }) {
-  return <View style={{ flexDirection: "row", gap: 4, padding: 4, borderRadius: 999, backgroundColor: palette.track }}>
-    {(["global", "country"] as const).map((option) => {
-      const selected = scope === option;
-      return <ScaleButton
-        key={option} label={option === "global" ? "Global leaderboard" : `${countryName(countryCode)} leaderboard`}
-        selected={selected} onPress={() => onChange(option)} wrapperStyle={{ flex: 1 }} glass={selected ? "clear" : undefined}
-        style={{ minHeight: 42, borderRadius: 999, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: selected ? palette.card : "transparent" }}
-      >
-        {option === "global" ? <GlobeIcon size={16} color={selected ? palette.primary : palette.muted} /> : countryCode ? <Text style={{ fontSize: 15 }}>{countryFlag(countryCode)}</Text> : null}
-        <Text numberOfLines={1} style={{ color: selected ? palette.primary : palette.muted, fontSize: 13, fontWeight: selected ? "800" : "600" }}>
-          {option === "global" ? "Global" : countryName(countryCode)}
-        </Text>
-      </ScaleButton>;
-    })}
-  </View>;
+  return <SegmentedPicker
+    options={[
+      { value: "global", label: "Global", accessibilityLabel: "Global leaderboard" },
+      { value: "country", label: countryName(countryCode), accessibilityLabel: `${countryName(countryCode)} leaderboard` },
+    ] as const}
+    value={scope}
+    onChange={onChange}
+    renderLeading={(option, selected) => option === "global"
+      ? <GlobeIcon size={16} color={selected ? palette.primary : palette.muted} />
+      : countryCode ? <Text style={{ fontSize: 15 }}>{countryFlag(countryCode)}</Text> : null}
+  />;
 }
 
 function PodiumPerson({ leader, first, scope, palette }: { leader: Leader; first?: boolean; scope: LeaderboardScope; palette: Palette }) {

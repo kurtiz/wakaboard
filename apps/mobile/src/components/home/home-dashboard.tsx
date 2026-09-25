@@ -10,6 +10,7 @@ import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingButton } from "../onboarding/onboarding-button";
 import { ChevronLink } from "../ui/chevron-link";
+import { BrandMark } from "../ui/brand-mark";
 import { useDashboard } from "../../data/dashboard-context";
 import { useLeaderboards } from "../../data/leaderboard-context";
 import { authClient, wakatimeConnectionAvailable } from "../../data/wakatime-client";
@@ -67,7 +68,7 @@ function HomeHeader({ today, name, syncing, sample, hasActivity, onSync, palette
     <View style={{ gap: 19 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
-          <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: palette.homeHero, alignItems: "center", justifyContent: "center" }}><Text style={{ color: palette.mint, fontSize: 21 }}>◷</Text></View>
+          <BrandMark size={32} />
           <Text style={{ color: palette.text, fontSize: 21, fontWeight: "800" }}>Home</Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>

@@ -3,21 +3,30 @@ import { usePalette } from "../../theme";
 
 export function NativeTabNavigation() {
   const palette = usePalette();
-  return <NativeTabs tintColor={palette.accent} backgroundColor={palette.card}>
+  const dark = palette.scheme === "dark";
+  return <NativeTabs tintColor={palette.primary} backgroundColor={palette.card} labelVisibilityMode="labeled">
     <NativeTabs.Trigger name="(home)">
-      <NativeTabs.Trigger.Icon md="home" />
+      <NativeTabs.Trigger.Icon src={dark
+        ? { default: require("../../../assets/icons/native-tabs/home-regular-dark.png"), selected: require("../../../assets/icons/native-tabs/home-fill-dark.png") }
+        : { default: require("../../../assets/icons/native-tabs/home-regular-light.png"), selected: require("../../../assets/icons/native-tabs/home-fill-light.png") }} />
       <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
     </NativeTabs.Trigger>
     <NativeTabs.Trigger name="(insights)">
-      <NativeTabs.Trigger.Icon md="bar_chart" />
+      <NativeTabs.Trigger.Icon src={dark
+        ? { default: require("../../../assets/icons/native-tabs/insights-regular-dark.png"), selected: require("../../../assets/icons/native-tabs/insights-fill-dark.png") }
+        : { default: require("../../../assets/icons/native-tabs/insights-regular-light.png"), selected: require("../../../assets/icons/native-tabs/insights-fill-light.png") }} />
       <NativeTabs.Trigger.Label>Insights</NativeTabs.Trigger.Label>
     </NativeTabs.Trigger>
     <NativeTabs.Trigger name="(leaderboard)">
-      <NativeTabs.Trigger.Icon md="leaderboard" />
+      <NativeTabs.Trigger.Icon src={dark
+        ? { default: require("../../../assets/icons/native-tabs/leaders-regular-dark.png"), selected: require("../../../assets/icons/native-tabs/leaders-fill-dark.png") }
+        : { default: require("../../../assets/icons/native-tabs/leaders-regular-light.png"), selected: require("../../../assets/icons/native-tabs/leaders-fill-light.png") }} />
       <NativeTabs.Trigger.Label>Leaders</NativeTabs.Trigger.Label>
     </NativeTabs.Trigger>
     <NativeTabs.Trigger name="(settings)">
-      <NativeTabs.Trigger.Icon md="settings" />
+      <NativeTabs.Trigger.Icon src={dark
+        ? { default: require("../../../assets/icons/native-tabs/settings-regular-dark.png"), selected: require("../../../assets/icons/native-tabs/settings-fill-dark.png") }
+        : { default: require("../../../assets/icons/native-tabs/settings-regular-light.png"), selected: require("../../../assets/icons/native-tabs/settings-fill-light.png") }} />
       <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
     </NativeTabs.Trigger>
   </NativeTabs>;

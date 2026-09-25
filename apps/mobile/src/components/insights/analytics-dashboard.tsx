@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboard } from "../../data/dashboard-context";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
+import { SegmentedPicker } from "../ui/segmented-picker";
 import { buildAnalytics, type AnalyticsRange, type CadenceBucket } from "./analytics-data";
 
 type Palette = ReturnType<typeof usePalette>;
@@ -35,17 +36,8 @@ function ConsistencyRing({ value, palette }: { value: number; palette: Palette }
   );
 }
 
-function RangePicker({ range, onChange, palette }: { range: AnalyticsRange; onChange: (range: AnalyticsRange) => void; palette: Palette }) {
-  return (
-    <View accessibilityRole="tablist" style={{ flexDirection: "row", borderRadius: 999, padding: 4, backgroundColor: palette.homeSubtle }}>
-      {ranges.map((option) => {
-        const selected = range === option.value;
-        return <ScaleButton key={option.label} label={`${option.label} range${selected ? ", selected" : ""}`} onPress={() => onChange(option.value)} wrapperStyle={{ flex: 1 }} style={{ minHeight: 40, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: selected ? palette.card : "transparent" }}>
-          <Text style={{ color: selected ? palette.primary : palette.muted, fontSize: 12, fontWeight: selected ? "800" : "600" }}>{option.label}</Text>
-        </ScaleButton>;
-      })}
-    </View>
-  );
+function RangePicker({ range, onChange }: { range: AnalyticsRange; onChange: (range: AnalyticsRange) => void }) {
+  return <SegmentedPicker options={ranges} value={range} onChange={onChange} />;
 }
 
 function DigestCard({ data, range, palette }: { data: ReturnType<typeof buildAnalytics>; range: AnalyticsRange; palette: Palette }) {
@@ -181,7 +173,7 @@ export function AnalyticsDashboard() {
       style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 16, paddingHorizontal: 16, paddingTop: 12, paddingBottom: Math.max(32, insets.bottom + 24) }}
     >
-      <RangePicker range={range} onChange={(next) => { setRange(next); setSelectedBucket(null); }} palette={palette} />
+      <RangePicker range={range} onChange={(next) => { setRange(next); setSelectedBucket(null); }} />
       <DigestCard data={data} range={range} palette={palette} />
       {loading ? <Text style={{ color: palette.muted, fontSize: 13 }}>Loading saved activity…</Text> : error ? <Text accessibilityRole="alert" style={{ color: palette.error, fontSize: 13 }}>{error}</Text> : null}
       <CadenceCard data={data} selectedIndex={selectedIndex} onSelect={setSelectedBucket} palette={palette} />
