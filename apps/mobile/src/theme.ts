@@ -1,30 +1,23 @@
 import { useColorScheme } from "react-native";
+import { useCSSVariable } from "uniwind";
 
-export const accent = "#42B78B";
+const names = [
+  "background", "card", "text", "muted", "border", "track", "bar", "hero",
+  "accent", "primary", "on-primary", "hero-title", "hero-kicker", "hero-muted",
+  "hero-detail", "success", "error", "mint", "amber", "progress", "progress-track",
+  "privacy-panel", "privacy-badge", "wakatime-tile", "wakatime-mark",
+  "readonly-badge", "no-code-badge", "user-badge", "secondary-ripple", "primary-ripple", "card-shadow",
+] as const;
 
-const light = {
-  background: "#F5F7F3",
-  card: "#FFFFFF",
-  text: "#172922",
-  muted: "#68766E",
-  border: "#E3EAE4",
-  track: "#DAE9DE",
-  bar: "#8CDAB7",
-  hero: "#112C24",
-};
+const variables = names.map((name) => `--color-${name}`);
 
-const dark = {
-  background: "#0D1713",
-  card: "#19251F",
-  text: "#F3F8F3",
-  muted: "#A5B5AA",
-  border: "#2B3D32",
-  track: "#344A3C",
-  bar: "#4CA97D",
-  hero: "#173C2F",
-};
+type PaletteKey = CamelCase<(typeof names)[number]>;
 
 export function usePalette() {
   const scheme = useColorScheme();
-  return { ...(scheme === "dark" ? dark : light), scheme: scheme ?? "light" };
+  const values = useCSSVariable(variables);
+  const colors = Object.fromEntries(names.map((name, index) => [name.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase()), values[index]]));
+  return { ...colors, scheme: scheme ?? "light" } as Record<PaletteKey, string> & { scheme: "light" | "dark" };
 }
+
+type CamelCase<S extends string> = S extends `${infer Head}-${infer Tail}` ? `${Head}${Capitalize<CamelCase<Tail>>}` : S;

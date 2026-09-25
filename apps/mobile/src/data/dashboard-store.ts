@@ -1,5 +1,6 @@
 import { localDateKey, type DailySummary } from "@wakaboard/core";
 import * as SQLite from "expo-sqlite";
+import type { Leaderboard, LeaderboardScope } from "./leaderboards";
 
 const DATABASE_NAME = "wakaboard.db";
 const DEFAULT_GOAL_SECONDS = 4 * 60 * 60;
@@ -32,6 +33,12 @@ async function database(): Promise<SQLite.SQLiteDatabase> {
         key TEXT PRIMARY KEY NOT NULL,
         value TEXT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS leaderboard_cache (
+        user_id TEXT NOT NULL,
+        scope TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        PRIMARY KEY (user_id, scope)
+      );
       `);
       return db;
     })
@@ -45,15 +52,20 @@ async function database(): Promise<SQLite.SQLiteDatabase> {
 export async function loadDashboard(): Promise<{
   summaries: DailySummary[];
   goalSeconds: number;
+  onboardingComplete: boolean;
 }> {
   const db = await database();
-  const [rows, goal] = await Promise.all([
+  const [rows, goal, onboarding] = await Promise.all([
     db.getAllAsync<SummaryRow>(
       "SELECT * FROM daily_summaries ORDER BY date DESC LIMIT 90",
     ),
     db.getFirstAsync<{ value: string }>(
       "SELECT value FROM preferences WHERE key = ?",
       ["daily_goal_seconds"],
+    ),
+    db.getFirstAsync<{ value: string }>(
+      "SELECT value FROM preferences WHERE key = ?",
+      ["onboarding_complete"],
     ),
   ]);
 
@@ -67,7 +79,37 @@ export async function loadDashboard(): Promise<{
       source: row.source,
     })),
     goalSeconds: goal ? Number(goal.value) : DEFAULT_GOAL_SECONDS,
+    onboardingComplete: onboarding?.value === "true" || rows.length > 0,
   };
+}
+
+export async function saveOnboardingComplete(): Promise<void> {
+  const db = await database();
+  await db.runAsync("INSERT INTO preferences (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", ["onboarding_complete", "true"]);
+}
+
+export async function loadCachedLeaderboards(userId: string): Promise<Partial<Record<LeaderboardScope, Leaderboard>>> {
+  const db = await database();
+  const rows = await db.getAllAsync<{ scope: LeaderboardScope; payload: string }>(
+    "SELECT scope, payload FROM leaderboard_cache WHERE user_id = ?", [userId],
+  );
+  const result: Partial<Record<LeaderboardScope, Leaderboard>> = {};
+  for (const row of rows) {
+    if (row.scope !== "country" && row.scope !== "global") continue;
+    try {
+      const board = JSON.parse(row.payload) as Leaderboard;
+      if (board.scope === row.scope && Array.isArray(board.leaders)) result[row.scope] = board;
+    } catch { /* Ignore damaged cache rows; the next refresh replaces them. */ }
+  }
+  return result;
+}
+
+export async function saveCachedLeaderboard(userId: string, board: Leaderboard): Promise<void> {
+  const db = await database();
+  await db.runAsync(
+    "INSERT INTO leaderboard_cache (user_id, scope, payload) VALUES (?, ?, ?) ON CONFLICT(user_id, scope) DO UPDATE SET payload = excluded.payload",
+    [userId, board.scope, JSON.stringify(board)],
+  );
 }
 
 export async function saveGoalSeconds(seconds: number): Promise<void> {

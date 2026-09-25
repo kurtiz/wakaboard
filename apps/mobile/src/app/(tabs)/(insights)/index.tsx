@@ -1,26 +1,65 @@
-import { formatDuration, localDateKey } from "@wakaboard/core";
-import { ScrollView, Text, View } from "react-native";
-import { DashboardCard } from "../../../components/dashboard-card";
+import { formatDuration, localDateKey, type Breakdown, type DailySummary } from "@wakaboard/core";
+import { Link } from "expo-router";
+import { useMemo, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { BreakdownRows, DashboardCard } from "../../../components/dashboard-card";
 import { WeeklyChart } from "../../../components/weekly-chart";
 import { useDashboard } from "../../../data/dashboard-context";
 import { usePalette } from "../../../theme";
 
+type RangeDays = 7 | 30 | 90;
+
+function dateBefore(days: number): Date {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() - days);
+  return date;
+}
+
+function aggregate(days: DailySummary[], field: "projects" | "languages" | "editors"): Breakdown[] {
+  const totals = new Map<string, number>();
+  for (const day of days) for (const row of day[field]) totals.set(row.name, (totals.get(row.name) ?? 0) + row.seconds);
+  return [...totals].map(([name, seconds]) => ({ name, seconds })).sort((a, b) => b.seconds - a.seconds).slice(0, 5);
+}
+
 export default function InsightsScreen() {
   const palette = usePalette();
   const { summaries } = useDashboard();
-  const days = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (6 - index));
-    const key = localDateKey(date);
+  const [range, setRange] = useState<RangeDays>(7);
+  const data = useMemo(() => {
+    const cutoff = localDateKey(dateBefore(range - 1));
+    const previousCutoff = localDateKey(dateBefore(range * 2 - 1));
+    const previousEnd = localDateKey(dateBefore(range));
+    const current = summaries.filter((day) => day.date >= cutoff);
+    const previous = summaries.filter((day) => day.date >= previousCutoff && day.date <= previousEnd);
+    const total = current.reduce((sum, day) => sum + day.totalSeconds, 0);
+    const previousTotal = previous.reduce((sum, day) => sum + day.totalSeconds, 0);
+    const active = current.filter((day) => day.totalSeconds > 0);
+    const totalsByDate = new Map(current.map((day) => [day.date, day.totalSeconds]));
+    const bucketCount = range === 7 ? 7 : range === 30 ? 5 : 6;
+    const bucketSize = Math.ceil(range / bucketCount);
+    const bars = Array.from({ length: bucketCount }, (_, index) => {
+      const offset = (bucketCount - 1 - index) * bucketSize;
+      const dates = Array.from({ length: bucketSize }, (_, step) => localDateKey(dateBefore(offset + step)));
+      return {
+        key: dates[0],
+        label: range === 7 ? dateBefore(offset).toLocaleDateString(undefined, { weekday: "short" }) : dateBefore(offset).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        seconds: dates.reduce((sum, date) => sum + (totalsByDate.get(date) ?? 0), 0),
+      };
+    });
     return {
-      key,
-      label: date.toLocaleDateString(undefined, { weekday: "short" }),
-      seconds: summaries.find((summary) => summary.date === key)?.totalSeconds ?? 0,
+      current, total, activeDays: active.length,
+      best: Math.max(0, ...current.map((day) => day.totalSeconds)),
+      previousTotal,
+      hasPrevious: previous.length > 0,
+      bars,
+      projects: aggregate(current, "projects"),
+      languages: aggregate(current, "languages"),
+      editors: aggregate(current, "editors"),
     };
-  });
-  const total = days.reduce((seconds, day) => seconds + day.seconds, 0);
-  const activeDays = days.filter((day) => day.seconds > 0).length;
-  const best = Math.max(...days.map((day) => day.seconds));
+  }, [range, summaries]);
+
+  const change = data.hasPrevious && data.previousTotal > 0 ? Math.round(((data.total - data.previousTotal) / data.previousTotal) * 100) : null;
 
   return (
     <ScrollView
@@ -29,54 +68,46 @@ export default function InsightsScreen() {
       style={{ backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 18, padding: 20, paddingBottom: 36 }}
     >
-      <Text style={{ color: palette.muted, fontSize: 16, lineHeight: 24 }}>
-        Your last seven days, at a glance.
-      </Text>
-      <View
-        className="gap-2 rounded-[28px] p-6"
-        style={{
-          backgroundColor: palette.hero,
-          borderCurve: "continuous",
-        }}
-      >
-        <Text style={{ color: "#A8D9BD", fontSize: 14, fontWeight: "700" }}>
-          LAST 7 DAYS
-        </Text>
-        <Text
-          selectable
-          style={{ color: "#FFFFFF", fontSize: 46, fontWeight: "800", fontVariant: ["tabular-nums"] }}
-        >
-          {formatDuration(total)}
-        </Text>
-        <Text style={{ color: "#B7D6C5", fontSize: 15 }}>
-          {activeDays} active {activeDays === 1 ? "day" : "days"} this week
-        </Text>
+      <Text style={{ color: palette.muted, fontSize: 16, lineHeight: 24 }}>Your coding rhythm, at a glance.</Text>
+      <View style={{ flexDirection: "row", gap: 8, backgroundColor: palette.track, padding: 5, borderRadius: 999 }}>
+        {([7, 30, 90] as const).map((option) => (
+          <Pressable key={option} accessibilityRole="button" accessibilityState={{ selected: range === option }} onPress={() => setRange(option)} style={{ flex: 1, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: range === option ? palette.card : "transparent" }}>
+            <Text style={{ color: range === option ? palette.text : palette.muted, fontWeight: "700" }}>{option}D</Text>
+          </Pressable>
+        ))}
+      </View>
+      <View style={{ backgroundColor: palette.hero, borderRadius: 28, padding: 24, gap: 8 }}>
+        <Text style={{ color: palette.heroKicker, fontSize: 12, fontWeight: "700", letterSpacing: 1 }}>LAST {range} DAYS</Text>
+        <Text selectable style={{ color: palette.onPrimary, fontSize: 46, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{formatDuration(data.total)}</Text>
+        <View style={{ flexDirection: "row", gap: 22 }}>
+          <Text style={{ color: palette.heroMuted, fontSize: 13 }}>{data.activeDays} active days</Text>
+          <Text style={{ color: palette.heroMuted, fontSize: 13 }}>{change === null ? "No prior comparison" : `${change >= 0 ? "+" : ""}${change}% vs prior ${range}D`}</Text>
+        </View>
       </View>
 
-      <DashboardCard title="Daily rhythm">
-        <Text selectable style={{ color: palette.muted, fontSize: 14, lineHeight: 21 }}>
-          {total > 0
-            ? `You coded for ${formatDuration(total)} across ${activeDays} days. Your busiest day was ${formatDuration(best)}.`
-            : "No activity is saved for this week yet."}
-        </Text>
-        <WeeklyChart days={days} />
+      {data.current.length < range && <Text style={{ color: palette.muted, fontSize: 12, lineHeight: 18 }}>Showing {data.current.length} saved {data.current.length === 1 ? "day" : "days"} in this range. Older activity appears after it syncs.</Text>}
+
+      <DashboardCard title="Coding rhythm">
+        <Text style={{ color: palette.muted, fontSize: 13, lineHeight: 20 }}>{data.total > 0 ? `${formatDuration(data.total)} across ${data.activeDays} active days.` : "No activity is saved for this range yet."}</Text>
+        <WeeklyChart days={data.bars} />
       </DashboardCard>
 
       <DashboardCard title="Your pace">
-        <View className="flex-row gap-3">
-          <View className="flex-1 gap-1.5">
-            <Text style={{ color: palette.muted, fontSize: 13 }}>Daily average</Text>
-            <Text selectable style={{ color: palette.text, fontSize: 22, fontWeight: "700" }}>
-              {formatDuration(total / 7)}
-            </Text>
-          </View>
-          <View className="flex-1 gap-1.5">
-            <Text style={{ color: palette.muted, fontSize: 13 }}>Best day</Text>
-            <Text selectable style={{ color: palette.text, fontSize: 22, fontWeight: "700" }}>
-              {formatDuration(best)}
-            </Text>
-          </View>
+        <View style={{ flexDirection: "row", gap: 14 }}>
+          <View style={{ flex: 1, gap: 5 }}><Text style={{ color: palette.muted, fontSize: 13 }}>Daily average</Text><Text selectable style={{ color: palette.text, fontSize: 22, fontWeight: "700" }}>{formatDuration(data.total / range)}</Text></View>
+          <View style={{ flex: 1, gap: 5 }}><Text style={{ color: palette.muted, fontSize: 13 }}>Best day</Text><Text selectable style={{ color: palette.text, fontSize: 22, fontWeight: "700" }}>{formatDuration(data.best)}</Text></View>
         </View>
+      </DashboardCard>
+
+      {(["projects", "languages", "editors"] as const).map((field) => (
+        <DashboardCard key={field} title={field[0].toUpperCase() + field.slice(1)}>
+          {data[field].length ? <BreakdownRows rows={data[field]} /> : <Text style={{ color: palette.muted }}>No {field} saved for this range.</Text>}
+        </DashboardCard>
+      ))}
+
+      <DashboardCard title="Activity timeline">
+        <Text style={{ color: palette.muted, fontSize: 14, lineHeight: 21 }}>Explore your saved coding days and project breakdowns.</Text>
+        <Link href="/(tabs)/(insights)/activity" style={{ color: palette.accent, fontSize: 14, fontWeight: "700", paddingVertical: 8 }}>View activity →</Link>
       </DashboardCard>
     </ScrollView>
   );

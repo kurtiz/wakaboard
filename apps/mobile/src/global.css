@@ -1,2 +1,73 @@
 @import "tailwindcss";
 @import "uniwind";
+
+@theme static {
+  --color-background: #FAF9F3;
+  --color-card: #FFFFFF;
+  --color-text: #1B1C19;
+  --color-muted: #3F4945;
+  --color-border: #EAE8DD;
+  --color-track: #EFEEE8;
+  --color-bar: #0D5C4D;
+  --color-hero: #122B24;
+  --color-accent: #42B78B;
+  --color-primary: #0D5C4D;
+  --color-on-primary: #FFFFFF;
+  --color-hero-title: #FFFFFF;
+  --color-hero-kicker: #A8D9BD;
+  --color-hero-muted: #B7D6C5;
+  --color-hero-detail: #E5F5EA;
+  --color-success: #28B485;
+  --color-error: #B33A3A;
+  --color-mint: #CCF6E5;
+  --color-amber: #F3A51B;
+  --color-progress: #70D8A5;
+  --color-progress-track: #315448;
+  --color-privacy-panel: #E3FBF6;
+  --color-privacy-badge: #EFFBF6;
+  --color-wakatime-tile: #102D27;
+  --color-wakatime-mark: #45D69D;
+  --color-readonly-badge: #E5F8EF;
+  --color-no-code-badge: #EEF3F0;
+  --color-user-badge: #E6FAF3;
+  --color-secondary-ripple: #D6EDE5;
+  --color-primary-ripple: #2C7768;
+  --color-card-shadow: rgba(13, 92, 77, 0.08);
+}
+
+@layer theme {
+  :root {
+    @variant light {
+      --color-background: #FAF9F3;
+      --color-card: #FFFFFF;
+      --color-text: #1B1C19;
+      --color-muted: #3F4945;
+      --color-border: #EAE8DD;
+      --color-track: #EFEEE8;
+      --color-bar: #0D5C4D;
+      --color-primary: #0D5C4D;
+      --color-on-primary: #FFFFFF;
+      --color-privacy-panel: #E3FBF6;
+      --color-privacy-badge: #EFFBF6;
+      --color-readonly-badge: #E5F8EF;
+      --color-no-code-badge: #EEF3F0;
+      --color-user-badge: #E6FAF3;
+    }
+    @variant dark {
+      --color-background: #121917;
+      --color-card: #18221F;
+      --color-text: #F2F1EB;
+      --color-muted: #BFC9C4;
+      --color-border: #2B3D32;
+      --color-track: #212F2A;
+      --color-bar: #34D399;
+      --color-primary: #34D399;
+      --color-on-primary: #122B24;
+      --color-privacy-panel: #18372F;
+      --color-privacy-badge: #18372F;
+      --color-readonly-badge: #204136;
+      --color-no-code-badge: #243B32;
+      --color-user-badge: #204136;
+    }
+  }
+}

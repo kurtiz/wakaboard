@@ -14,6 +14,7 @@ import {
   clearSampleSummaries,
   clearWakaTimeSummaries,
   loadDashboard,
+  saveOnboardingComplete,
   saveGoalSeconds,
   saveSummary,
 } from "./dashboard-store";
@@ -22,6 +23,7 @@ import { authClient, fetchWakaTimeSummaries, wakatimeConnectionAvailable } from 
 type DashboardState = {
   summaries: DailySummary[];
   goalSeconds: number;
+  onboardingComplete: boolean;
   loading: boolean;
   error: string | null;
   syncing: boolean;
@@ -34,6 +36,7 @@ type DashboardContextValue = DashboardState & {
   clearSample: () => Promise<void>;
   clearWakaTime: () => Promise<void>;
   setGoalHours: (hours: number) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
   syncWakaTime: () => Promise<void>;
 };
 
@@ -44,6 +47,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DashboardState>({
     summaries: [],
     goalSeconds: 4 * 3600,
+    onboardingComplete: false,
     loading: true,
     error: null,
     syncing: false,
@@ -69,12 +73,25 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       setState((current) => ({ ...current, syncing: true, syncError: null }));
       try {
         const end = new Date();
-        const start = new Date(end);
-        start.setDate(start.getDate() - 6);
-        const summaries = await fetchWakaTimeSummaries(localDateKey(start), localDateKey(end));
+        const windows = [0, 30, 60].map((offset) => {
+          const windowEnd = new Date(end);
+          windowEnd.setDate(end.getDate() - offset);
+          const windowStart = new Date(windowEnd);
+          windowStart.setDate(windowEnd.getDate() - 29);
+          return [localDateKey(windowStart), localDateKey(windowEnd)] as const;
+        });
+        const results = await Promise.allSettled(windows.map(([start, finish]) => fetchWakaTimeSummaries(start, finish)));
+        const summaries = results.flatMap((result) => result.status === "fulfilled" ? result.value : []);
+        if (summaries.length === 0 && results.some((result) => result.status === "rejected")) {
+          const failed = results.find((result) => result.status === "rejected");
+          throw failed?.status === "rejected" ? failed.reason : new Error("Activity could not be synced.");
+        }
         await clearSampleSummaries();
-        for (const summary of summaries) await saveSummary(summary);
+        await Promise.all(summaries.map((summary) => saveSummary(summary)));
         await refresh();
+        if (showError && results.some((result) => result.status === "rejected")) {
+          setState((current) => ({ ...current, syncError: "Recent activity was saved, but some older days could not be synced." }));
+        }
       } catch (error) {
         if (showError) {
           setState((current) => ({
@@ -120,6 +137,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       },
       setGoalHours: async (hours) => {
         await saveGoalSeconds(Math.round(hours * 3600));
+        await refresh();
+      },
+      completeOnboarding: async () => {
+        await saveOnboardingComplete();
         await refresh();
       },
       syncWakaTime: () => runSync(true),

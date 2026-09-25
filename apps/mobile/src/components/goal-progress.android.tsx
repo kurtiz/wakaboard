@@ -1,14 +1,16 @@
 import { Host } from "@expo/ui";
+import { usePalette } from "../theme";
 import { LinearProgressIndicator } from "@expo/ui/jetpack-compose";
 import { fillMaxWidth } from "@expo/ui/jetpack-compose/modifiers";
 
 export function GoalProgress({ progress }: { progress: number }) {
+  const palette = usePalette();
   return (
-    <Host style={{ height: 12, width: "100%" }} seedColor="#42B78B">
+    <Host style={{ height: 12, width: "100%" }} seedColor={palette.accent}>
       <LinearProgressIndicator
         progress={progress}
-        color="#70D8A5"
-        trackColor="#315448"
+        color={palette.progress}
+        trackColor={palette.progressTrack}
         modifiers={[fillMaxWidth()]}
       />
     </Host>

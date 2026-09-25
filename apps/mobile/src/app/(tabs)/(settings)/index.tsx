@@ -1,13 +1,16 @@
 import { Button, FieldGroup, Host, Slider, Text } from "@expo/ui";
 import { formatDuration } from "@wakaboard/core";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { useDashboard } from "../../../data/dashboard-context";
+import { useLeaderboards } from "../../../data/leaderboard-context";
 import { authClient, wakatimeConnectionAvailable } from "../../../data/wakatime-client";
-import { accent, usePalette } from "../../../theme";
+import { usePalette } from "../../../theme";
 
 export default function SettingsScreen() {
   const palette = usePalette();
   const { goalSeconds, summaries, setGoalHours, clearSample, clearWakaTime, syncWakaTime, syncing, syncError } = useDashboard();
+  const { refresh: refreshLeaderboards, clear: clearLeaderboards } = useLeaderboards();
   const [draftHours, setDraftHours] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
@@ -32,7 +35,7 @@ export default function SettingsScreen() {
       if (error) throw new Error(error.message);
       const { data } = await authClient.getSession();
       setAccountEmail(data?.user.email ?? null);
-      if (data?.user) await syncWakaTime();
+      if (data?.user) await Promise.all([syncWakaTime(), refreshLeaderboards()]);
     } catch (error) {
       setAccountError(error instanceof Error ? error.message : "WakaTime sign-in failed.");
     } finally {
@@ -47,7 +50,9 @@ export default function SettingsScreen() {
       const { error } = await authClient.signOut();
       if (error) throw new Error(error.message);
       await clearWakaTime();
+      clearLeaderboards();
       setAccountEmail(null);
+      router.replace("/auth");
     } catch (error) {
       setAccountError(error instanceof Error ? error.message : "Could not sign out.");
     } finally {
@@ -66,7 +71,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <Host style={{ flex: 1 }} seedColor={accent} colorScheme={palette.scheme}>
+    <Host style={{ flex: 1 }} seedColor={palette.accent} colorScheme={palette.scheme}>
       <FieldGroup>
         {wakatimeConnectionAvailable && (
           <FieldGroup.Section title="WakaTime">
@@ -82,7 +87,7 @@ export default function SettingsScreen() {
               <Button label={accountBusy ? "Connecting…" : "Connect WakaTime"} disabled={accountBusy} onPress={() => void connect()} />
             )}
             {(accountError || syncError) && (
-              <Text textStyle={{ fontSize: 13, color: "#B33A3A" }}>
+              <Text textStyle={{ fontSize: 13, color: palette.error }}>
                 {accountError ?? syncError ?? ""}
               </Text>
             )}

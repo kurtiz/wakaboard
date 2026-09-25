@@ -1,4 +1,5 @@
 import { Button, Host } from "@expo/ui";
+import { usePalette } from "../theme";
 
 export function NativeAction({
   label,
@@ -9,8 +10,9 @@ export function NativeAction({
   onPress: () => void;
   variant?: "filled" | "outlined" | "text";
 }) {
+  const palette = usePalette();
   return (
-    <Host matchContents seedColor="#42B78B">
+    <Host matchContents seedColor={palette.accent}>
       <Button label={label} onPress={onPress} variant={variant} />
     </Host>
   );

@@ -8,6 +8,21 @@ type WakaTimeSummary = {
   editors?: { name: string; total_seconds: number }[];
 };
 
+type WakaTimeLeader = {
+  rank: number;
+  running_total?: { total_seconds?: number };
+  user?: { id?: string; display_name?: string; username?: string; city?: { country_code?: string } };
+};
+
+type WakaTimeLeaders = {
+  current_user?: { rank?: number | null; user?: { city?: { country_code?: string } } };
+  data?: WakaTimeLeader[];
+  page?: number;
+  total_pages?: number;
+  modified_at?: string;
+  range?: { text?: string };
+};
+
 function validDate(value: string | null): value is string {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const date = new Date(`${value}T00:00:00Z`);
@@ -31,7 +46,7 @@ export default {
     }
     const auth = createAuth(env);
     if (url.pathname.startsWith("/api/auth/")) return auth.handler(request);
-    if (url.pathname !== "/api/summaries" || request.method !== "GET") {
+    if (!(["/api/summaries", "/api/leaderboards"].includes(url.pathname)) || request.method !== "GET") {
       return json({ error: "Not found" }, 404);
     }
 
@@ -55,6 +70,43 @@ export default {
       headers: request.headers,
     });
     if (!tokens.accessToken) return json({ error: "WakaTime session expired" }, 401);
+
+    if (url.pathname === "/api/leaderboards") {
+      const scope = url.searchParams.get("scope");
+      if (scope !== "global" && scope !== "country") return json({ error: "Invalid leaderboard scope" }, 400);
+      const globalUrl = new URL("https://wakatime.com/api/v1/leaders");
+      globalUrl.searchParams.set("page", "1");
+      globalUrl.searchParams.set("board_type", "time");
+      const headers = { Authorization: `Bearer ${tokens.accessToken}`, Accept: "application/json" };
+      const globalResponse = await fetch(globalUrl, { headers });
+      if (!globalResponse.ok) return json({ error: "WakaTime leaderboard is unavailable" }, 502);
+      const globalBoard = await globalResponse.json() as WakaTimeLeaders;
+      if (!Array.isArray(globalBoard.data)) return json({ error: "Invalid WakaTime leaderboard" }, 502);
+      const countryCode = globalBoard.current_user?.user?.city?.country_code?.toUpperCase() ?? null;
+      let board = globalBoard;
+      if (scope === "country" && countryCode && /^[A-Z]{2}$/.test(countryCode)) {
+        const countryUrl = new URL(globalUrl);
+        countryUrl.searchParams.set("country_code", countryCode);
+        const countryResponse = await fetch(countryUrl, { headers });
+        if (!countryResponse.ok) return json({ error: "Country leaderboard is unavailable" }, 502);
+        board = await countryResponse.json() as WakaTimeLeaders;
+        if (!Array.isArray(board.data)) return json({ error: "Invalid country leaderboard" }, 502);
+      }
+      return json({
+        scope,
+        countryCode,
+        rank: scope === "country" && !countryCode ? null : board.current_user?.rank ?? null,
+        leaders: scope === "country" && !countryCode ? [] : (board.data ?? []).slice(0, 20).map((entry) => ({
+          id: entry.user?.id ?? String(entry.rank),
+          rank: entry.rank,
+          name: entry.user?.display_name || entry.user?.username || "Anonymous User",
+          seconds: entry.running_total?.total_seconds ?? 0,
+          countryCode: entry.user?.city?.country_code ?? null,
+        })),
+        range: board.range?.text ?? "This week",
+        updatedAt: board.modified_at ?? null,
+      });
+    }
 
     const upstream = new URL("https://wakatime.com/api/v1/users/current/summaries");
     upstream.searchParams.set("start", start);
