@@ -1,0 +1,4 @@
+BETTER_AUTH_URL=http://localhost:8787
+BETTER_AUTH_SECRET=replace-with-at-least-32-random-characters
+WAKATIME_CLIENT_ID=replace-with-wakatime-client-id
+WAKATIME_CLIENT_SECRET=replace-with-wakatime-client-secret
