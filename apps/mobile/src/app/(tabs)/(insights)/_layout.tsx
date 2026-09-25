@@ -12,7 +12,7 @@ export default function InsightsLayout() {
         headerTintColor: palette.text,
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Insights", headerLargeTitle: true }} />
+      <Stack.Screen name="index" options={{ title: "Analytics", headerLargeTitle: false }} />
       <Stack.Screen name="activity" options={{ title: "Activity" }} />
     </Stack>
   );
