@@ -1,6 +1,6 @@
 import { localDateKey, type DailySummary } from "@wakaboard/core";
 import * as SQLite from "expo-sqlite";
-import type { Leaderboard, LeaderboardScope } from "./leaderboards";
+import type { Leaderboard, LeaderboardScope, MemberProfile } from "./leaderboards";
 
 const DATABASE_NAME = "wakaboard.db";
 const DEFAULT_GOAL_SECONDS = 4 * 60 * 60;
@@ -38,6 +38,12 @@ async function database(): Promise<SQLite.SQLiteDatabase> {
         scope TEXT NOT NULL,
         payload TEXT NOT NULL,
         PRIMARY KEY (user_id, scope)
+      );
+      CREATE TABLE IF NOT EXISTS member_profile_cache (
+        user_id TEXT NOT NULL,
+        profile_id TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        PRIMARY KEY (user_id, profile_id)
       );
       `);
       return db;
@@ -109,6 +115,26 @@ export async function saveCachedLeaderboard(userId: string, board: Leaderboard):
   await db.runAsync(
     "INSERT INTO leaderboard_cache (user_id, scope, payload) VALUES (?, ?, ?) ON CONFLICT(user_id, scope) DO UPDATE SET payload = excluded.payload",
     [userId, board.scope, JSON.stringify(board)],
+  );
+}
+
+export async function loadCachedMemberProfile(userId: string, profileId: string): Promise<MemberProfile | null> {
+  const db = await database();
+  const row = await db.getFirstAsync<{ payload: string }>(
+    "SELECT payload FROM member_profile_cache WHERE user_id = ? AND profile_id = ?", [userId, profileId],
+  );
+  if (!row) return null;
+  try {
+    const profile = JSON.parse(row.payload) as MemberProfile;
+    return profile.id && profile.name ? profile : null;
+  } catch { return null; }
+}
+
+export async function saveCachedMemberProfile(userId: string, profileId: string, profile: MemberProfile): Promise<void> {
+  const db = await database();
+  await db.runAsync(
+    "INSERT INTO member_profile_cache (user_id, profile_id, payload) VALUES (?, ?, ?) ON CONFLICT(user_id, profile_id) DO UPDATE SET payload = excluded.payload",
+    [userId, profileId, JSON.stringify(profile)],
   );
 }
 

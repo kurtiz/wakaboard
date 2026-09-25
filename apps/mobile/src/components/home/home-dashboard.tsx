@@ -78,7 +78,7 @@ function HomeHeader({ today, name, syncing, sample, hasActivity, onSync, palette
             </Pressable>
           </Animated.View>
           <Animated.View style={profilePress.style}>
-            <Link href="/(tabs)/(settings)" asChild><Pressable accessibilityRole="button" accessibilityLabel="Open settings" onPressIn={profilePress.onPressIn} onPressOut={profilePress.onPressOut} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: palette.homeHero, alignItems: "center", justifyContent: "center" }}><Svg width={19} height={19} viewBox="0 0 24 24"><Circle cx="12" cy="8" r="3.5" fill="none" stroke={palette.homeHeroText} strokeWidth="2" /><Path d="M5 20c0-4 3-6 7-6s7 2 7 6" fill="none" stroke={palette.homeHeroText} strokeWidth="2" strokeLinecap="round" /></Svg></Pressable></Link>
+            <Link href="/(tabs)/(leaderboard)/profile/current" asChild><Pressable accessibilityRole="button" accessibilityLabel="Open your WakaTime profile" onPressIn={profilePress.onPressIn} onPressOut={profilePress.onPressOut} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: palette.homeHero, alignItems: "center", justifyContent: "center" }}><Svg width={19} height={19} viewBox="0 0 24 24"><Circle cx="12" cy="8" r="3.5" fill="none" stroke={palette.homeHeroText} strokeWidth="2" /><Path d="M5 20c0-4 3-6 7-6s7 2 7 6" fill="none" stroke={palette.homeHeroText} strokeWidth="2" strokeLinecap="round" /></Svg></Pressable></Link>
           </Animated.View>
         </View>
       </View>

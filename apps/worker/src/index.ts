@@ -10,8 +10,19 @@ type WakaTimeSummary = {
 
 type WakaTimeLeader = {
   rank: number;
-  running_total?: { total_seconds?: number };
-  user?: { id?: string; display_name?: string; username?: string; city?: { country_code?: string } };
+  running_total?: { total_seconds?: number; daily_average?: number; languages?: { name: string; total_seconds: number }[] };
+  user?: { id?: string; display_name?: string; username?: string; is_photo_public?: boolean; city?: { country_code?: string } };
+};
+
+type WakaTimeProfile = {
+  id?: string;
+  display_name?: string;
+  username?: string;
+  photo?: string;
+  is_photo_public?: boolean;
+  bio?: string;
+  website?: string;
+  city?: { country_code?: string; title?: string };
 };
 
 type WakaTimeLeaders = {
@@ -36,6 +47,25 @@ function json(value: unknown, status = 200): Response {
   });
 }
 
+function publicPhoto(profile: WakaTimeProfile, ownProfile = false): string | null {
+  if (!ownProfile && !profile.is_photo_public) return null;
+  if (!profile.photo) return null;
+  try {
+    const url = new URL(profile.photo);
+    return url.protocol === "https:" ? url.toString() : null;
+  } catch { return null; }
+}
+
+async function getWakaTimeProfile(id: string, headers: Record<string, string>): Promise<WakaTimeProfile | null> {
+  if (!/^[\w-]{1,80}$/.test(id)) return null;
+  try {
+    const response = await fetch(`https://wakatime.com/api/v1/users/${encodeURIComponent(id)}`, { headers });
+    if (!response.ok) return null;
+    const result = await response.json() as { data?: WakaTimeProfile };
+    return result.data?.id === id ? result.data : null;
+  } catch { return null; }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -46,7 +76,7 @@ export default {
     }
     const auth = createAuth(env);
     if (url.pathname.startsWith("/api/auth/")) return auth.handler(request);
-    if (!(["/api/summaries", "/api/leaderboards"].includes(url.pathname)) || request.method !== "GET") {
+    if (!(["/api/summaries", "/api/leaderboards", "/api/profile"].includes(url.pathname)) || request.method !== "GET") {
       return json({ error: "Not found" }, 404);
     }
 
@@ -64,13 +94,34 @@ export default {
     });
     if (!tokens.accessToken) return json({ error: "WakaTime session expired" }, 401);
 
+    const headers = { Authorization: `Bearer ${tokens.accessToken}`, Accept: "application/json" };
+
+    if (url.pathname === "/api/profile") {
+      const id = url.searchParams.get("id");
+      if (!id || (id !== "current" && !/^[\w-]{1,80}$/.test(id))) return json({ error: "Invalid profile" }, 400);
+      const response = await fetch(`https://wakatime.com/api/v1/users/${encodeURIComponent(id)}`, { headers });
+      if (!response.ok) return json({ error: "WakaTime profile is unavailable" }, response.status === 404 ? 404 : 502);
+      const { data } = await response.json() as { data?: WakaTimeProfile };
+      if (!data?.id) return json({ error: "Invalid WakaTime profile" }, 502);
+      const ownProfile = id === "current" || data.id === session.user.id;
+      return json({
+        id: data.id,
+        name: data.display_name || data.username || "Anonymous User",
+        username: data.username ?? null,
+        photo: publicPhoto(data, ownProfile),
+        bio: data.bio ?? null,
+        website: data.website ?? null,
+        countryCode: data.city?.country_code ?? null,
+        location: data.city?.title ?? null,
+      });
+    }
+
     if (url.pathname === "/api/leaderboards") {
       const scope = url.searchParams.get("scope");
       if (scope !== "global" && scope !== "country") return json({ error: "Invalid leaderboard scope" }, 400);
       const globalUrl = new URL("https://wakatime.com/api/v1/leaders");
       globalUrl.searchParams.set("page", "1");
       globalUrl.searchParams.set("board_type", "time");
-      const headers = { Authorization: `Bearer ${tokens.accessToken}`, Accept: "application/json" };
       const globalResponse = await fetch(globalUrl, { headers });
       if (!globalResponse.ok) return json({ error: "WakaTime leaderboard is unavailable" }, 502);
       const globalBoard = await globalResponse.json() as WakaTimeLeaders;
@@ -85,15 +136,30 @@ export default {
         board = await countryResponse.json() as WakaTimeLeaders;
         if (!Array.isArray(board.data)) return json({ error: "Invalid country leaderboard" }, 502);
       }
+      const entries = scope === "country" && !countryCode ? [] : (board.data ?? []).slice(0, 20);
+      const photos = new Map<string, string>();
+      for (let index = 0; index < Math.min(entries.length, 10); index += 4) {
+        const group = entries.slice(index, Math.min(index + 4, 10));
+        const resolved = await Promise.all(group.map(async (entry) => {
+          if (!entry.user?.id || !entry.user.is_photo_public) return null;
+          const profile = await getWakaTimeProfile(entry.user.id, headers);
+          return profile ? [entry.user.id, publicPhoto(profile)] as const : null;
+        }));
+        for (const result of resolved) if (result?.[1]) photos.set(result[0], result[1]);
+      }
       return json({
         scope,
         countryCode,
         rank: scope === "country" && !countryCode ? null : board.current_user?.rank ?? null,
-        leaders: scope === "country" && !countryCode ? [] : (board.data ?? []).slice(0, 20).map((entry) => ({
+        leaders: entries.map((entry) => ({
           id: entry.user?.id ?? String(entry.rank),
           rank: entry.rank,
           name: entry.user?.display_name || entry.user?.username || "Anonymous User",
+          username: entry.user?.username ?? null,
+          photo: entry.user?.id ? photos.get(entry.user.id) ?? null : null,
           seconds: entry.running_total?.total_seconds ?? 0,
+          dailyAverage: entry.running_total?.daily_average ?? 0,
+          languages: (entry.running_total?.languages ?? []).map((language) => ({ name: language.name, seconds: language.total_seconds })),
           countryCode: entry.user?.city?.country_code ?? null,
         })),
         range: board.range?.text ?? "This week",

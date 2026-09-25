@@ -3,13 +3,14 @@ import { router } from "expo-router";
 import { GlobeIcon } from "phosphor-react-native/src/icons/Globe";
 import { LockKeyIcon } from "phosphor-react-native/src/icons/LockKey";
 import { MedalIcon } from "phosphor-react-native/src/icons/Medal";
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { useLeaderboards } from "../../data/leaderboard-context";
 import type { Leader, LeaderboardScope } from "../../data/leaderboards";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
 import { SegmentedPicker } from "../ui/segmented-picker";
 import { useLeaderboardScope } from "./leaderboard-scope";
+import { MemberAvatar } from "./member-avatar";
 import { StandingOverlay } from "./standing-overlay";
 
 type Palette = ReturnType<typeof usePalette>;
@@ -27,9 +28,12 @@ function countryFlag(code: string | null): string {
   return String.fromCodePoint(...[...code].map((letter) => letter.charCodeAt(0) + 127397));
 }
 
-function initials(name: string): string {
-  const words = name.replace(/^@/, "").split(/[\s_-]+/).filter(Boolean);
-  return (words.length > 1 ? `${words[0][0]}${words[1][0]}` : words[0]?.slice(0, 2) ?? "?").toUpperCase();
+function memberHref(id: string) {
+  return { pathname: "/(tabs)/(leaderboard)/profile/[id]" as const, params: { id } };
+}
+
+function languagesLabel(leader: Leader): string {
+  return (leader.languages ?? []).map((language) => language.name).join(", ");
 }
 
 function ScopeSelector({ scope, countryCode, onChange, palette }: {
@@ -51,18 +55,17 @@ function ScopeSelector({ scope, countryCode, onChange, palette }: {
 function PodiumPerson({ leader, first, scope, palette }: { leader: Leader; first?: boolean; scope: LeaderboardScope; palette: Palette }) {
   const dark = !!first;
   const textColor = dark ? palette.homeHeroText : palette.text;
-  return <View style={{ flex: 1, minWidth: 0, alignItems: "center", paddingHorizontal: 7, paddingTop: first ? 24 : 19, paddingBottom: first ? 17 : 13, borderRadius: 19, borderWidth: 1, borderColor: dark ? palette.homeHero : palette.border, backgroundColor: dark ? palette.homeHero : palette.card, transform: [{ translateY: first ? -7 : 0 }] }}>
+  return <Pressable accessibilityRole="button" accessibilityLabel={`View ${leader.name}'s WakaTime profile`} onPress={() => router.push(memberHref(leader.id))} style={{ flex: 1, minWidth: 0, alignItems: "center", paddingHorizontal: 7, paddingTop: first ? 24 : 19, paddingBottom: first ? 17 : 13, borderRadius: 19, borderWidth: 1, borderColor: dark ? palette.homeHero : palette.border, backgroundColor: dark ? palette.homeHero : palette.card, transform: [{ translateY: first ? -7 : 0 }] }}>
     <View style={{ position: "absolute", top: -10, flexDirection: "row", alignItems: "center", gap: 2, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, backgroundColor: first ? palette.homeAmber : palette.track }}>
       {first ? <MedalIcon size={13} weight="fill" color={palette.homeAmberText} /> : null}
       <Text style={{ color: first ? palette.homeAmberText : palette.muted, fontSize: 10, fontWeight: "800" }}>#{leader.rank}</Text>
     </View>
-    <View style={{ width: first ? 43 : 37, height: first ? 43 : 37, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: first ? palette.homeHeroChip : palette.track }}>
-      <Text style={{ color: first ? palette.homeHeroText : palette.primary, fontSize: 12, fontWeight: "800" }}>{initials(leader.name)}</Text>
-    </View>
+    <MemberAvatar id={leader.id} name={leader.name} photo={leader.photo} size={first ? 43 : 37} dark={dark} />
     <Text numberOfLines={1} style={{ width: "100%", marginTop: 9, color: textColor, textAlign: "center", fontSize: 12, fontWeight: "800" }}>{leader.name}</Text>
     <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: textColor, marginTop: 3, fontSize: first ? 16 : 14, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{formatDuration(leader.seconds)}</Text>
-    {scope === "global" && leader.countryCode ? <Text numberOfLines={1} style={{ marginTop: 6, color: dark ? palette.homeHeroMuted : palette.muted, fontSize: 10 }}>{countryName(leader.countryCode)}</Text> : null}
-  </View>;
+    {scope === "global" && leader.countryCode ? <Text numberOfLines={1} style={{ marginTop: 6, color: dark ? palette.homeHeroMuted : palette.muted, fontSize: 10 }}>{countryFlag(leader.countryCode)} {countryName(leader.countryCode)}</Text> : null}
+    {languagesLabel(leader) ? <Text numberOfLines={1} ellipsizeMode="tail" style={{ width: "100%", marginTop: 3, color: dark ? palette.homeHeroMuted : palette.muted, textAlign: "center", fontSize: 10 }}>{languagesLabel(leader)}</Text> : null}
+  </Pressable>;
 }
 
 function Podium({ leaders, scope, palette }: { leaders: Leader[]; scope: LeaderboardScope; palette: Palette }) {
@@ -77,17 +80,17 @@ function Podium({ leaders, scope, palette }: { leaders: Leader[]; scope: Leaderb
 
 function RankingRow({ leader, scope, currentRank, palette }: { leader: Leader; scope: LeaderboardScope; currentRank: number | null; palette: Palette }) {
   const current = leader.rank === currentRank;
-  return <View style={{ minHeight: 65, paddingHorizontal: 13, paddingVertical: 10, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: current ? palette.userBadge : palette.card }}>
+  return <Pressable accessibilityRole="button" accessibilityLabel={`View ${leader.name}'s WakaTime profile`} onPress={() => router.push(memberHref(leader.id))} style={{ minHeight: 69, paddingHorizontal: 13, paddingVertical: 10, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: current ? palette.userBadge : palette.card }}>
     <Text style={{ width: 25, color: current ? palette.primary : palette.muted, fontSize: 12, fontWeight: "800" }}>#{leader.rank}</Text>
-    <View style={{ width: 33, height: 33, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: palette.track }}>
-      <Text style={{ color: palette.primary, fontSize: 10, fontWeight: "800" }}>{initials(leader.name)}</Text>
-    </View>
+    <MemberAvatar id={leader.id} name={leader.name} photo={leader.photo} size={33} />
     <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
       <Text numberOfLines={1} style={{ color: palette.text, fontSize: 13, fontWeight: "700" }}>{current ? `You · ${leader.name}` : leader.name}</Text>
-      {scope === "global" && leader.countryCode ? <Text numberOfLines={1} style={{ color: palette.muted, fontSize: 10 }}>{countryName(leader.countryCode)}</Text> : null}
+      <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: palette.muted, fontSize: 10 }}>
+        {scope === "global" && leader.countryCode ? `${countryFlag(leader.countryCode)} ${countryName(leader.countryCode)}` : ""}{scope === "global" && leader.countryCode && languagesLabel(leader) ? " · " : ""}{languagesLabel(leader)}
+      </Text>
     </View>
     <Text style={{ color: palette.primary, fontSize: 13, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{formatDuration(leader.seconds)}</Text>
-  </View>;
+  </Pressable>;
 }
 
 export function LeaderboardScreen() {
@@ -101,7 +104,7 @@ export function LeaderboardScreen() {
   const updatedLabel = updated && !Number.isNaN(updated.getTime()) ? `Updated ${updated.toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : "WakaTime rankings";
 
   return <View style={{ flex: 1, backgroundColor: palette.background }}>
-    <ScrollView contentInsetAdjustmentBehavior="automatic" refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void refresh()} tintColor={palette.primary} />} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 17, paddingBottom: board ? 110 : 30, gap: 18 }}>
+    <ScrollView contentInsetAdjustmentBehavior="automatic" refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void refresh()} tintColor={palette.primary} />} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 17, paddingBottom: board ? 220 : 30, gap: 18 }}>
       <ScopeSelector scope={scope} countryCode={countryCode} onChange={setScope} palette={palette} />
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <View style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: palette.homeSurface }}><Text style={{ color: palette.muted, fontSize: 11, fontWeight: "700" }}>Last 7 days</Text></View>

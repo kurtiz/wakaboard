@@ -25,7 +25,8 @@ export function StandingCard({ board, scope, countryCode, compact = false }: {
     flexDirection: "row",
     alignItems: "center",
     gap: compact ? 8 : 11,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: palette.homeHero,
   }}>
     <View style={{ width: compact ? 28 : 34, height: compact ? 28 : 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeHeroChip }}>
       <Text style={{ color: palette.homeHeroText, fontSize: compact ? 9 : 10, fontWeight: "800" }}>YOU</Text>

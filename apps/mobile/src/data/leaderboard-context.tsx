@@ -3,6 +3,7 @@ import * as SecureStore from "expo-secure-store";
 import { authClient, wakatimeConnectionAvailable } from "./wakatime-client";
 import { fetchLeaderboard, type Leaderboard, type LeaderboardScope } from "./leaderboards";
 import { loadCachedLeaderboards, saveCachedLeaderboard } from "./dashboard-store";
+import { cacheAvatar } from "./avatar-cache";
 
 type Boards = Record<LeaderboardScope, Leaderboard | null>;
 type LeaderboardContextValue = {
@@ -29,6 +30,8 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
       if (!session?.user) throw new Error("Connect WakaTime to see the leaderboards.");
       const [global, country] = await Promise.all([fetchLeaderboard("global"), fetchLeaderboard("country")]);
       setBoards({ global, country });
+      const avatars = new Map([...global.leaders, ...country.leaders].filter((leader) => leader.photo).map((leader) => [leader.id, leader.photo!]));
+      void Promise.allSettled([...avatars].map(([id, photo]) => cacheAvatar(id, photo)));
       await Promise.allSettled([
         SecureStore.setItemAsync(CACHED_USER_KEY, session.user.id),
         saveCachedLeaderboard(session.user.id, global),
