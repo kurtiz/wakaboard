@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { useEffect, useState } from "react";
 import { BackHandler, ScrollView, Text, View } from "react-native";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
@@ -110,7 +111,7 @@ export default function OnboardingScreen() {
           label={step < 2 ? "Continue" : busy ? "Continuing…" : "Continue to sign in"}
           disabled={busy}
           onPress={() => step < 2 ? (setError(null), setStep(step + 1)) : void finish()}
-          trailing={<Text style={{ color: palette.onPrimary, fontSize: 18 }}>→</Text>}
+          trailing={<CaretRightIcon color={palette.onPrimary} size={19} weight="bold" />}
         />
         <OnboardingButton
           label={slide.secondary}

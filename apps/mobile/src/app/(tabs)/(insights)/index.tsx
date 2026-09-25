@@ -1,5 +1,5 @@
+import { ChevronLink } from "../../../components/chevron-link";
 import { formatDuration, localDateKey, type Breakdown, type DailySummary } from "@wakaboard/core";
-import { Link } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { BreakdownRows, DashboardCard } from "../../../components/dashboard-card";
@@ -107,7 +107,7 @@ export default function InsightsScreen() {
 
       <DashboardCard title="Activity timeline">
         <Text style={{ color: palette.muted, fontSize: 14, lineHeight: 21 }}>Explore your saved coding days and project breakdowns.</Text>
-        <Link href="/(tabs)/(insights)/activity" style={{ color: palette.accent, fontSize: 14, fontWeight: "700", paddingVertical: 8 }}>View activity →</Link>
+        <ChevronLink href="/(tabs)/(insights)/activity" label="View activity" color={palette.accent} fontSize={14} style={{ alignSelf: "flex-start", paddingVertical: 8 }} />
       </DashboardCard>
     </ScrollView>
   );

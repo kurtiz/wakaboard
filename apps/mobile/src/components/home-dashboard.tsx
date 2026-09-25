@@ -1,11 +1,15 @@
 import { formatDuration, goalProgress, localDateKey, type Breakdown, type DailySummary } from "@wakaboard/core";
 import { Link } from "expo-router";
+import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
+import { ChartLineUpIcon } from "phosphor-react-native/src/icons/ChartLineUp";
+import { FireIcon } from "phosphor-react-native/src/icons/Fire";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingButton } from "./onboarding-button";
+import { ChevronLink } from "./chevron-link";
 import { useDashboard } from "../data/dashboard-context";
 import { useLeaderboards } from "../data/leaderboard-context";
 import { authClient, wakatimeConnectionAvailable } from "../data/wakatime-client";
@@ -125,8 +129,8 @@ function HeroCard({ total, goalSeconds, progress, streak, dailyAverage, palette 
   return (
     <View style={{ backgroundColor: palette.homeHero, borderRadius: 30, padding: 20, gap: 22, borderCurve: "continuous" }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-        <Text style={{ color: palette.homeHeroMuted, fontSize: 11, fontWeight: "800", letterSpacing: 1.2, flexShrink: 1 }}>TODAY · CODING TIME</Text>
-        {streak > 0 ? <View style={{ borderRadius: 999, backgroundColor: android ? palette.homeAmber : palette.homeHeroChip, paddingHorizontal: 11, paddingVertical: 6 }}><Text style={{ color: android ? palette.homeAmberText : palette.homeHeroText, fontSize: 11, fontWeight: "800" }}>🔥 {streak}-day streak</Text></View> : null}
+        <Text numberOfLines={1} style={{ color: palette.homeHeroMuted, fontSize: 11, fontWeight: "800", letterSpacing: 1.2, flexShrink: 1 }}>TODAY · CODING TIME</Text>
+        {streak > 0 ? <View style={{ flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 999, backgroundColor: palette.homeHeroChip, paddingHorizontal: 10, paddingVertical: 6 }}><FireIcon color={palette.homeAmber} size={14} weight="fill" /><Text numberOfLines={1} style={{ color: palette.homeHeroText, fontSize: 11, fontWeight: "800" }}>{streak}-day streak</Text></View> : null}
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 5 }}>
         <View style={{ flex: 1, gap: 8 }}>
@@ -137,13 +141,13 @@ function HeroCard({ total, goalSeconds, progress, streak, dailyAverage, palette 
       </View>
       {android ? (
         <View style={{ flexDirection: "row", gap: 9 }}>
-          <View style={{ flex: 1, backgroundColor: palette.homeHeroChip, borderRadius: 16, padding: 11, gap: 4 }}><Text style={{ color: palette.homeHeroMuted, fontSize: 11 }}>Daily average</Text><Text selectable style={{ color: palette.homeHeroText, fontWeight: "800", fontSize: 15 }}>{formatDuration(dailyAverage)}</Text></View>
+          <View style={{ flex: 1, backgroundColor: palette.homeHeroChip, borderRadius: 16, padding: 11, gap: 4 }}><Text style={{ color: palette.homeHeroMuted, fontSize: 11 }}>Active day average</Text><Text selectable style={{ color: palette.homeHeroText, fontWeight: "800", fontSize: 15 }}>{formatDuration(dailyAverage)}</Text></View>
           <View style={{ flex: 1, backgroundColor: palette.homeHeroChip, borderRadius: 16, padding: 11, gap: 4 }}><Text style={{ color: palette.homeHeroMuted, fontSize: 11 }}>Remaining</Text><Text selectable style={{ color: palette.homeHeroText, fontWeight: "800", fontSize: 15 }}>{formatDuration(remaining)}</Text></View>
         </View>
       ) : (
         <View style={{ gap: 9 }}>
           <View style={{ height: 6, backgroundColor: palette.homeHeroTrack, borderRadius: 4, overflow: "hidden" }}><View style={{ width: `${Math.round(progress * 100)}%`, height: 6, backgroundColor: palette.homeAmber, borderRadius: 4 }} /></View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ color: palette.homeHeroMuted, fontSize: 11 }}>Active day avg {formatDuration(dailyAverage)}</Text><Link href="/(tabs)/(insights)" style={{ color: palette.homeHeroText, fontSize: 11, fontWeight: "800" }}>Details →</Link></View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ color: palette.homeHeroMuted, fontSize: 11 }}>Active day average {formatDuration(dailyAverage)}</Text><ChevronLink href="/(tabs)/(insights)" label="Details" color={palette.homeHeroText} fontSize={11} /></View>
         </View>
       )}
     </View>
@@ -168,8 +172,8 @@ function WeeklyCard({ days, total, palette }: { days: Day[]; total: number; pale
   const peak = Math.max(...days.map((day) => day.seconds));
   return (
     <SurfaceCard palette={palette}>
-      <SectionTitle title={android ? "Weekly Rhythm" : "This Week"} kicker={android ? undefined : "Activity distribution"} trailing={android ? <Text selectable style={{ color: palette.primary, fontSize: 13, fontWeight: "800" }}>{formatDuration(total)}</Text> : <Link href="/(tabs)/(insights)" style={{ color: palette.primary, fontSize: 12, fontWeight: "800" }}>Analytics →</Link>} palette={palette} />
-      {android ? <Text style={{ color: palette.muted, fontSize: 12, marginTop: -14 }}>Active day average: {formatDuration(activeDays ? total / activeDays : 0)}</Text> : null}
+      <SectionTitle title="This Week" kicker="Activity distribution" trailing={<ChevronLink href="/(tabs)/(insights)" label="Analytics" color={palette.primary} fontSize={12} />} palette={palette} />
+      {android ? <Text style={{ color: palette.muted, fontSize: 12, marginTop: -14 }}>{formatDuration(total)} total · Active day average {formatDuration(activeDays ? total / activeDays : 0)}</Text> : null}
       <View style={{ height: 140, flexDirection: "row", alignItems: "flex-end", gap: 8, paddingTop: 10 }}>
         {days.map((day, index) => {
           const today = index === days.length - 1;
@@ -193,7 +197,7 @@ function BreakdownCard({ title, kicker, rows, palette }: { title: string; kicker
   const total = rows.reduce((sum, row) => sum + row.seconds, 0);
   return (
     <SurfaceCard palette={palette}>
-      <SectionTitle title={title} kicker={kicker} trailing={title === "Languages" ? <Link href="/(tabs)/(insights)/activity" style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>Details →</Link> : <Text style={{ color: palette.muted, fontSize: 11 }}>{rows.length} total</Text>} palette={palette} />
+      <SectionTitle title={title} kicker={kicker} trailing={title === "Languages" ? <ChevronLink href="/(tabs)/(insights)/activity" label="Details" color={palette.primary} fontSize={12} /> : <Text style={{ color: palette.muted, fontSize: 11 }}>{rows.length} total</Text>} palette={palette} />
       {ordered.length === 0 ? <Text style={{ color: palette.muted, fontSize: 13 }}>No {title.toLowerCase()} recorded today.</Text> : ordered.map((row, index) => {
         const share = total ? row.seconds / total : 0;
         const color = index === 2 ? palette.homeAmber : index === 3 ? palette.muted : index === 1 ? palette.bar : palette.homeHero;
@@ -217,7 +221,7 @@ function EditorsCard({ rows, palette }: { rows: Breakdown[]; palette: Palette })
   const colors = [palette.homeHero, palette.homeAmber, palette.muted];
   return (
     <SurfaceCard palette={palette}>
-      <SectionTitle title={android ? "Editors Used" : "IDE & Editors"} trailing={<Text style={{ color: palette.muted, fontSize: 11 }}>{rows.length} {rows.length === 1 ? "app" : "apps"} today</Text>} palette={palette} />
+      <SectionTitle title="Editors" trailing={<Text style={{ color: palette.muted, fontSize: 11 }}>{rows.length} {rows.length === 1 ? "app" : "apps"} today</Text>} palette={palette} />
       {ordered.length === 0 ? <Text style={{ color: palette.muted, fontSize: 13 }}>No editors recorded today.</Text> : <>
         <View style={{ flexDirection: "row", height: 10, borderRadius: 5, overflow: "hidden", backgroundColor: palette.homeSubtle, gap: 2 }}>{ordered.map((row, index) => <View key={row.name} style={{ width: `${Math.max(0, Math.round((row.seconds / Math.max(1, total)) * 100) - 1)}%`, backgroundColor: colors[index] }} />)}</View>
         <View style={{ flexDirection: "row", gap: 9, flexWrap: "wrap" }}>{ordered.map((row, index) => <View key={row.name} style={{ flexGrow: 1, minWidth: 90, gap: 3, backgroundColor: android ? palette.card : "transparent", borderRadius: 12, padding: android ? 10 : 0 }}><Text numberOfLines={1} style={{ color: colors[index], fontSize: 12, fontWeight: "800" }}>● {row.name}</Text><Text selectable style={{ color: palette.muted, fontSize: 11 }}>{formatDuration(row.seconds)} · {Math.round((row.seconds / Math.max(1, total)) * 100)}%</Text></View>)}</View>
@@ -230,16 +234,19 @@ function WeeklyInsight({ days, palette }: { days: Day[]; palette: Palette }) {
   const press = useAndroidPressScale();
   const peak = days.reduce<Day | null>((best, day) => !best || day.seconds > best.seconds ? day : best, null);
   if (!peak || peak.seconds <= 0) return null;
-  const date = new Date(`${peak.key}T12:00:00`);
+  const weekday = new Date(`${peak.key}T12:00:00`).toLocaleDateString(undefined, { weekday: "long" });
   return (
-    <Animated.View style={press.style}>
-    <Link href="/(tabs)/(insights)" asChild>
-      <Pressable accessibilityRole="button" accessibilityLabel="See weekly insights" onPressIn={press.onPressIn} onPressOut={press.onPressOut} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 13, padding: 17, borderRadius: 24, backgroundColor: palette.homeSurface, opacity: pressed ? 0.76 : 1 })}>
-        <View style={{ width: 42, height: 42, borderRadius: 16, backgroundColor: palette.homeMintSurface, alignItems: "center", justifyContent: "center" }}><Text style={{ color: palette.primary, fontSize: 22 }}>↗</Text></View>
-        <View style={{ flex: 1, gap: 3 }}><Text style={{ color: palette.text, fontSize: 15, fontWeight: "800" }}>{android ? "Best coding day" : "Peak this week"}</Text><Text style={{ color: palette.muted, fontSize: 12 }}>{date.toLocaleDateString(undefined, { weekday: "long" })} · {formatDuration(peak.seconds)} recorded</Text></View>
-        <Text style={{ color: palette.muted, fontSize: 20 }}>›</Text>
-      </Pressable>
-    </Link>
+    <Animated.View style={[press.style, { width: "100%" }]}>
+      <Link href="/(tabs)/(insights)" asChild>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Best coding day: ${weekday}, ${formatDuration(peak.seconds)}. See weekly insights`} onPressIn={press.onPressIn} onPressOut={press.onPressOut} style={({ pressed }) => ({ width: "100%", minHeight: 78, flexDirection: "row", alignItems: "center", gap: 13, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 24, backgroundColor: palette.homeSurface, opacity: pressed ? 0.76 : 1 })}>
+          <View style={{ width: 42, height: 42, borderRadius: 16, backgroundColor: palette.homeMintSurface, alignItems: "center", justifyContent: "center" }}><ChartLineUpIcon color={palette.primary} size={22} weight="bold" /></View>
+          <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+            <Text numberOfLines={1} style={{ color: palette.text, fontSize: 15, fontWeight: "800" }}>Best coding day</Text>
+            <Text numberOfLines={1} style={{ color: palette.muted, fontSize: 12 }}>{weekday} · {formatDuration(peak.seconds)} of coding</Text>
+          </View>
+          <CaretRightIcon color={palette.muted} size={20} weight="bold" />
+        </Pressable>
+      </Link>
     </Animated.View>
   );
 }
@@ -248,7 +255,7 @@ function StandingCard({ palette }: { palette: Palette }) {
   const { boards, loading, error } = useLeaderboards();
   return (
     <SurfaceCard palette={palette}>
-      <SectionTitle title="Your standing" kicker="Leaderboard" trailing={<Link href="/(tabs)/(leaderboard)" style={{ color: palette.primary, fontSize: 12, fontWeight: "800" }}>See leaders →</Link>} palette={palette} />
+      <SectionTitle title="Your standing" kicker="Leaderboard" trailing={<ChevronLink href="/(tabs)/(leaderboard)" label="See leaders" color={palette.primary} fontSize={12} />} palette={palette} />
       <View style={{ flexDirection: "row", gap: 10 }}>
         {(["country", "global"] as const).map((scope) => <View key={scope} style={{ flex: 1, gap: 5, borderRadius: 17, backgroundColor: palette.homeSubtle, padding: 13 }}><Text style={{ color: palette.muted, fontSize: 10, fontWeight: "800", textTransform: "uppercase" }}>{scope === "country" ? "Your country" : "Worldwide"}</Text><Text selectable style={{ color: palette.text, fontSize: 27, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{boards[scope] ? boards[scope].rank === null ? "—" : `#${boards[scope].rank}` : loading ? "…" : "—"}</Text><Text style={{ color: palette.muted, fontSize: 10 }}>{boards[scope]?.rank != null ? "This week" : boards[scope] ? "Not ranked" : "Unavailable"}</Text></View>)}
       </View>
@@ -306,14 +313,14 @@ export function HomeDashboard() {
         {android ? <>
           <BreakdownCard title="Languages" rows={summary?.languages ?? []} palette={palette} />
           <EditorsCard rows={summary?.editors ?? []} palette={palette} />
-          <BreakdownCard title="Active Projects" rows={summary?.projects ?? []} palette={palette} />
+          <BreakdownCard title="Projects Today" rows={summary?.projects ?? []} palette={palette} />
         </> : <>
           <BreakdownCard title="Projects Today" kicker="Breakdown" rows={summary?.projects ?? []} palette={palette} />
           <BreakdownCard title="Languages" rows={summary?.languages ?? []} palette={palette} />
           <EditorsCard rows={summary?.editors ?? []} palette={palette} />
         </>}
         <WeeklyInsight days={days} palette={palette} />
-        <Link href="/(tabs)/(insights)/activity" style={{ color: palette.primary, fontSize: 14, fontWeight: "800", textAlign: "center", paddingVertical: 10 }}>View activity timeline →</Link>
+        <ChevronLink href="/(tabs)/(insights)/activity" label="View activity timeline" color={palette.primary} fontSize={14} style={{ alignSelf: "center", paddingVertical: 10 }} />
       </> : null}
     </ScrollView>
     </View>

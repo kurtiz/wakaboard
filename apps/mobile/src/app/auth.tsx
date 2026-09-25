@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -49,7 +50,7 @@ export default function AuthScreen() {
       <View style={{ gap: 12, alignItems: "center" }}>
         {error && <Text accessibilityRole="alert" style={{ color: palette.error, textAlign: "center" }}>{error}</Text>}
         {wakatimeConnectionAvailable ? (
-          <OnboardingButton label={busy ? "Connecting…" : "Connect WakaTime"} disabled={busy} onPress={() => void connect()} trailing={busy ? <ActivityIndicator color={palette.onPrimary} /> : <Text style={{ color: palette.onPrimary, fontSize: 17 }}>↗</Text>} />
+          <OnboardingButton label={busy ? "Connecting…" : "Connect WakaTime"} disabled={busy} onPress={() => void connect()} trailing={busy ? <ActivityIndicator color={palette.onPrimary} /> : <CaretRightIcon color={palette.onPrimary} size={19} weight="bold" />} />
         ) : (
           <Text style={{ color: palette.muted, textAlign: "center" }}>WakaTime connection is not configured on this build.</Text>
         )}
