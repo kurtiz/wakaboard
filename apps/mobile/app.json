@@ -31,7 +31,13 @@
     "name": "WakaBoard",
     "slug": "wakaboard",
     "android": {
-      "package": "com.kompyler.wakaboard"
+      "package": "com.kompyler.wakaboard",
+      "icon": "./assets/icons/android-legacy.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icons/android-foreground.png",
+        "monochromeImage": "./assets/icons/android-monochrome.png",
+        "backgroundColor": "#0A382F"
+      }
     },
     "ios": {
       "bundleIdentifier": "com.kompyler.wakaboard"
