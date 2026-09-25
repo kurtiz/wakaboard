@@ -40,7 +40,8 @@
       }
     },
     "ios": {
-      "bundleIdentifier": "com.kompyler.wakaboard"
+      "bundleIdentifier": "com.kompyler.wakaboard",
+      "icon": "./assets/icons/WakaBoard.icon"
     }
   }
 }

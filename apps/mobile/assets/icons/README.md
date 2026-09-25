@@ -20,4 +20,4 @@ Import these aligned 1024 × 1024 PNGs as separate layers, in this order:
 2. `ios-composer/foreground-glyph.png`
 3. `ios-composer/amber-beacon.png` (optional accent)
 
-The source SVGs are alongside the PNGs. Keep the canvas alignment and let Icon Composer apply the platform mask and appearance treatments. The iOS icon is deliberately not connected to Expo config yet; add the completed Icon Composer export when it is ready.
+The source SVGs are alongside the PNGs. Keep the canvas alignment and let Icon Composer apply the platform mask and appearance treatments. The completed export is in `WakaBoard.icon/` and connected through `ios.icon` in `apps/mobile/app.json`. Keep the entire `.icon` directory together; its `icon.json` references the images in `Assets/`.
