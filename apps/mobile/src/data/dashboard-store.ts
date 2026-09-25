@@ -146,6 +146,16 @@ export async function saveGoalSeconds(seconds: number): Promise<void> {
   );
 }
 
+export async function loadOfflineStats(): Promise<{ days: number; bytes: number }> {
+  const db = await database();
+  const [count, pages, pageSize] = await Promise.all([
+    db.getFirstAsync<{ total: number }>("SELECT COUNT(*) AS total FROM daily_summaries WHERE source = ?", ["wakatime"]),
+    db.getFirstAsync<{ page_count: number }>("PRAGMA page_count"),
+    db.getFirstAsync<{ page_size: number }>("PRAGMA page_size"),
+  ]);
+  return { days: count?.total ?? 0, bytes: (pages?.page_count ?? 0) * (pageSize?.page_size ?? 0) };
+}
+
 export async function saveSummary(summary: DailySummary): Promise<void> {
   const db = await database();
   await db.runAsync(

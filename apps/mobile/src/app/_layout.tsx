@@ -4,6 +4,7 @@ import { Stack, usePathname } from "expo-router";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef } from "react";
+import { initializeAppearance } from "../appearance-preferences";
 import { pageHeaderOptions } from "../components/navigation/page-header-options";
 import { HapticPreset } from "../constants/haptics";
 import { DashboardProvider } from "../data/dashboard-context";
@@ -12,6 +13,7 @@ import { FontProvider, useFontChoice } from "../font-choice";
 import { usePalette } from "../theme";
 
 export default function Layout() {
+  initializeAppearance();
   const [fontsLoaded, fontError] = useFonts({
     Nunito: require("../../assets/fonts/Nunito.ttf"),
     Outfit: require("../../assets/fonts/Outfit.ttf"),

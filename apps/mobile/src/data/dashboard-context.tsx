@@ -19,6 +19,7 @@ import {
   saveSummary,
 } from "./dashboard-store";
 import { authClient, fetchWakaTimeSummaries, wakatimeConnectionAvailable } from "./wakatime-client";
+import { isAutoSyncEnabled } from "./offline-preferences";
 
 type DashboardState = {
   summaries: DailySummary[];
@@ -115,7 +116,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void refresh().then(async () => {
-      if (!wakatimeConnectionAvailable) return;
+      if (!wakatimeConnectionAvailable || !isAutoSyncEnabled()) return;
       try {
         if (await authClient.getCookie()) await runSync(false);
       } catch {
