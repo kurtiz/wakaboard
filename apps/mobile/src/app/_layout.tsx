@@ -12,7 +12,10 @@ export default function Layout() {
     <DashboardProvider>
       <LeaderboardProvider>
         <StatusBar style={palette.scheme === "dark" ? "light" : "dark"} />
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false, headerBackButtonDisplayMode: "minimal" }}>
+          <Stack.Screen name="activity" options={{ title: "Activity", headerShown: true, headerShadowVisible: false, headerStyle: { backgroundColor: palette.background }, headerTintColor: palette.text, contentStyle: { backgroundColor: palette.background } }} />
+          <Stack.Screen name="profile/[id]" options={{ title: "WakaTime profile", headerShown: true, headerShadowVisible: false, headerStyle: { backgroundColor: palette.background }, headerTintColor: palette.text, contentStyle: { backgroundColor: palette.background } }} />
+        </Stack>
       </LeaderboardProvider>
     </DashboardProvider>
   );

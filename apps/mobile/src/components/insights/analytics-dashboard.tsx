@@ -190,7 +190,7 @@ export function AnalyticsDashboard() {
         <View style={{ flex: 1, gap: 3 }}><Text style={{ color: palette.text, fontSize: 14, fontWeight: "800" }}>Your coding report</Text><Text style={{ color: palette.muted, fontSize: 11 }}>Share the summary for this range</Text></View>
         <ScaleButton label="Share coding report" onPress={() => void shareReport()} glass="clear" style={{ width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: palette.card }}><ShareNetworkIcon color={palette.primary} size={20} weight="bold" /></ScaleButton>
       </View>
-      <ScaleButton label="Open activity timeline" onPress={() => router.push("/(tabs)/(insights)/activity")} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, padding: 16, minHeight: 68, borderRadius: 22, backgroundColor: palette.homeSurface }}>
+      <ScaleButton label="Open activity timeline" onPress={() => router.push("/activity")} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, padding: 16, minHeight: 68, borderRadius: 22, backgroundColor: palette.homeSurface }}>
         <View style={{ flex: 1, gap: 3 }}><Text style={{ color: palette.text, fontSize: 15, fontWeight: "800" }}>Activity timeline</Text><Text style={{ color: palette.muted, fontSize: 11 }}>Explore your saved coding days</Text></View>
         <CaretRightIcon color={palette.primary} size={20} weight="bold" />
       </ScaleButton>

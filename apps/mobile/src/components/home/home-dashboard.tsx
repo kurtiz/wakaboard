@@ -78,7 +78,7 @@ function HomeHeader({ today, name, syncing, sample, hasActivity, onSync, palette
             </Pressable>
           </Animated.View>
           <Animated.View style={profilePress.style}>
-            <Link href="/(tabs)/(leaderboard)/profile/current" asChild><Pressable accessibilityRole="button" accessibilityLabel="Open your WakaTime profile" onPressIn={profilePress.onPressIn} onPressOut={profilePress.onPressOut} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: palette.homeHero, alignItems: "center", justifyContent: "center" }}><Svg width={19} height={19} viewBox="0 0 24 24"><Circle cx="12" cy="8" r="3.5" fill="none" stroke={palette.homeHeroText} strokeWidth="2" /><Path d="M5 20c0-4 3-6 7-6s7 2 7 6" fill="none" stroke={palette.homeHeroText} strokeWidth="2" strokeLinecap="round" /></Svg></Pressable></Link>
+            <Link href="/profile/current" asChild><Pressable accessibilityRole="button" accessibilityLabel="Open your WakaTime profile" onPressIn={profilePress.onPressIn} onPressOut={profilePress.onPressOut} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: palette.homeHero, alignItems: "center", justifyContent: "center" }}><Svg width={19} height={19} viewBox="0 0 24 24"><Circle cx="12" cy="8" r="3.5" fill="none" stroke={palette.homeHeroText} strokeWidth="2" /><Path d="M5 20c0-4 3-6 7-6s7 2 7 6" fill="none" stroke={palette.homeHeroText} strokeWidth="2" strokeLinecap="round" /></Svg></Pressable></Link>
           </Animated.View>
         </View>
       </View>
@@ -188,7 +188,7 @@ function BreakdownCard({ title, kicker, rows, palette }: { title: string; kicker
   const total = rows.reduce((sum, row) => sum + row.seconds, 0);
   return (
     <SurfaceCard palette={palette}>
-      <SectionTitle title={title} kicker={kicker} trailing={title === "Languages" ? <ChevronLink href="/(tabs)/(insights)/activity" label="Details" color={palette.primary} fontSize={12} /> : <Text style={{ color: palette.muted, fontSize: 11 }}>{rows.length} total</Text>} palette={palette} />
+      <SectionTitle title={title} kicker={kicker} trailing={title === "Languages" ? <ChevronLink href="/activity" label="Details" color={palette.primary} fontSize={12} /> : <Text style={{ color: palette.muted, fontSize: 11 }}>{rows.length} total</Text>} palette={palette} />
       {ordered.length === 0 ? <Text style={{ color: palette.muted, fontSize: 13 }}>No {title.toLowerCase()} recorded today.</Text> : ordered.map((row, index) => {
         const share = total ? row.seconds / total : 0;
         const color = index === 2 ? palette.homeAmber : index === 3 ? palette.muted : index === 1 ? palette.bar : palette.homeHero;
@@ -309,7 +309,7 @@ export function HomeDashboard() {
           <EditorsCard rows={summary?.editors ?? []} palette={palette} />
         </>}
         <WeeklyInsight days={days} palette={palette} />
-        <ChevronLink href="/(tabs)/(insights)/activity" label="View activity timeline" color={palette.primary} fontSize={14} style={{ alignSelf: "center", paddingVertical: 10 }} />
+        <ChevronLink href="/activity" label="View activity timeline" color={palette.primary} fontSize={14} style={{ alignSelf: "center", paddingVertical: 10 }} />
       </> : null}
     </ScrollView>
     </View>

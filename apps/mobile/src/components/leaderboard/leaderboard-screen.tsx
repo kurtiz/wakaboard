@@ -29,7 +29,7 @@ function countryFlag(code: string | null): string {
 }
 
 function memberHref(id: string) {
-  return { pathname: "/(tabs)/(leaderboard)/profile/[id]" as const, params: { id } };
+  return { pathname: "/profile/[id]" as const, params: { id } };
 }
 
 function languagesLabel(leader: Leader): string {
@@ -64,7 +64,6 @@ function PodiumPerson({ leader, first, scope, palette }: { leader: Leader; first
     <Text numberOfLines={1} style={{ width: "100%", marginTop: 9, color: textColor, textAlign: "center", fontSize: 12, fontWeight: "800" }}>{leader.name}</Text>
     <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: textColor, marginTop: 3, fontSize: first ? 16 : 14, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{formatDuration(leader.seconds)}</Text>
     {scope === "global" && leader.countryCode ? <Text numberOfLines={1} style={{ marginTop: 6, color: dark ? palette.homeHeroMuted : palette.muted, fontSize: 10 }}>{countryFlag(leader.countryCode)} {countryName(leader.countryCode)}</Text> : null}
-    {languagesLabel(leader) ? <Text numberOfLines={1} ellipsizeMode="tail" style={{ width: "100%", marginTop: 3, color: dark ? palette.homeHeroMuted : palette.muted, textAlign: "center", fontSize: 10 }}>{languagesLabel(leader)}</Text> : null}
   </Pressable>;
 }
 

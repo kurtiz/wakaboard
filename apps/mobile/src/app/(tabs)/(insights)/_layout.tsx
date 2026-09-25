@@ -13,7 +13,6 @@ export default function InsightsLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: "Analytics", headerLargeTitle: false }} />
-      <Stack.Screen name="activity" options={{ title: "Activity" }} />
     </Stack>
   );
 }
