@@ -1,13 +1,13 @@
+import { Text } from "../ui/app-text";
 import { formatDuration, goalProgress, localDateKey, type Breakdown, type DailySummary } from "@wakaboard/core";
 import { Link, router } from "expo-router";
 import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { ChartLineUpIcon } from "phosphor-react-native/src/icons/ChartLineUp";
 import { FireIcon } from "phosphor-react-native/src/icons/Fire";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import Animated from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingButton } from "../onboarding/onboarding-button";
 import { ChevronLink } from "../ui/chevron-link";
 import { BrandMark } from "../ui/brand-mark";
@@ -18,6 +18,7 @@ import { usePalette } from "../../theme";
 import { usePressScale } from "../ui/use-press-scale";
 import { MemberAvatar } from "../leaderboard/member-avatar";
 import type { MemberProfile } from "../../data/leaderboards";
+import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 
 type Palette = ReturnType<typeof usePalette>;
 type Day = { key: string; label: string; seconds: number };
@@ -71,7 +72,7 @@ function HomeHeader({ today, name, profile, syncing, sample, hasActivity, onSync
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
           <BrandMark size={32} />
-          <Text style={{ color: palette.text, fontSize: 21, fontWeight: "800" }}>Home</Text>
+          <Text style={{ color: palette.text, fontSize: 21, fontWeight: "800" }}>WakaBoard</Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
           <Animated.View style={syncPress.style}>
@@ -257,7 +258,7 @@ function StandingCard({ palette }: { palette: Palette }) {
 
 export function HomeDashboard() {
   const palette = usePalette();
-  const insets = useSafeAreaInsets();
+  const { offset, onScroll } = useAndroidPageScroll();
   const { summaries, goalSeconds, loading, error, syncing, syncError, addSample, refresh, syncWakaTime } = useDashboard();
   const { currentProfile, refresh: refreshLeaderboards } = useLeaderboards();
   const [name, setName] = useState<string | null>(null);
@@ -283,14 +284,16 @@ export function HomeDashboard() {
   }
 
   return (
-    <View style={{ flex: 1, paddingTop: android ? insets.top : 0, backgroundColor: palette.background }}>
-    <ScrollView
-      className="flex-1"
+    <AndroidPageFrame title="Today" offset={offset}>
+    <Animated.ScrollView
       contentInsetAdjustmentBehavior="automatic"
+      onScroll={android ? onScroll : undefined}
+      scrollEventThrottle={16}
       refreshControl={<RefreshControl refreshing={syncing} onRefresh={() => void refreshActivity()} tintColor={palette.accent} />}
-      style={{ backgroundColor: palette.background }}
+      style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 16, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 38 }}
     >
+      <AndroidLargeTitle title="Today" offset={offset} />
       <HomeHeader today={today} name={name} profile={currentProfile} syncing={syncing} sample={sample} hasActivity={summaries.length > 0} onSync={() => void refreshActivity()} palette={palette} />
       {syncError ? <Text accessibilityRole="alert" style={{ color: palette.error, fontSize: 13 }}>{syncError}</Text> : null}
       {loading ? <ActivityIndicator color={palette.accent} style={{ paddingVertical: 65 }} /> : error ? <SurfaceCard palette={palette}><Text style={{ color: palette.text, fontWeight: "800" }}>Local data unavailable</Text><Text style={{ color: palette.muted }}>{error}</Text><OnboardingButton label="Try again" onPress={() => void refresh()} /></SurfaceCard> : summaries.length === 0 ? <SurfaceCard palette={palette}><SectionTitle title="Make your coding visible" palette={palette} /><Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>Your WakaTime activity will appear after your first sync. You can explore with sample data meanwhile.</Text><OnboardingButton label="Explore sample data" onPress={() => void addSample()} /></SurfaceCard> : <>
@@ -313,7 +316,7 @@ export function HomeDashboard() {
         <WeeklyInsight days={days} palette={palette} />
         <ChevronLink href="/activity" label="View activity timeline" color={palette.primary} fontSize={14} style={{ alignSelf: "center", paddingVertical: 10 }} />
       </> : null}
-    </ScrollView>
-    </View>
+    </Animated.ScrollView>
+    </AndroidPageFrame>
   );
 }

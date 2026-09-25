@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import { Text } from "../ui/app-text";
+import { View } from "react-native";
 import { useLeaderboards } from "../../data/leaderboard-context";
 import type { Leaderboard, LeaderboardScope } from "../../data/leaderboards";
 import { usePalette } from "../../theme";

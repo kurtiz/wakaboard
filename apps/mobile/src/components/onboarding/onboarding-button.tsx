@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from "react-native";
+import { Text } from "../ui/app-text";
+import { Pressable, View } from "react-native";
 import { usePalette } from "../../theme";
 import type { OnboardingButtonProps } from "./onboarding-button.types";
 

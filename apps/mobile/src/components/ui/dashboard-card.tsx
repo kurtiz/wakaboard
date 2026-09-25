@@ -1,7 +1,8 @@
+import { Text } from "./app-text";
 import type { Breakdown } from "@wakaboard/core";
 import { formatDuration } from "@wakaboard/core";
 import type { ReactNode } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import { usePalette } from "../../theme";
 
 export function DashboardCard({

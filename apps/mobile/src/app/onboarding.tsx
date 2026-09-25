@@ -1,7 +1,8 @@
+import { Text } from "../components/ui/app-text";
 import { router } from "expo-router";
 import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { useEffect, useState } from "react";
-import { BackHandler, ScrollView, Text, View } from "react-native";
+import { BackHandler, ScrollView, View } from "react-native";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BrandMark, OnboardingArt } from "../components/onboarding/onboarding-art";

@@ -1,5 +1,6 @@
+import { Text } from "../ui/app-text";
 import { Image } from "expo-image";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import { usePalette } from "../../theme";
 
 function initials(name: string): string {

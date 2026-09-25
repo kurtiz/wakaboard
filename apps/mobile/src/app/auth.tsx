@@ -1,7 +1,8 @@
+import { Text } from "../components/ui/app-text";
 import { router } from "expo-router";
 import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BrandMark, OnboardingArt } from "../components/onboarding/onboarding-art";
 import { OnboardingButton } from "../components/onboarding/onboarding-button";

@@ -1,3 +1,4 @@
+import { Text } from "../ui/app-text";
 import { formatDuration, goalProgress, localDateKey, type Breakdown, type DailySummary } from "@wakaboard/core";
 import { router } from "expo-router";
 import { CalendarBlankIcon } from "phosphor-react-native/src/icons/CalendarBlank";
@@ -8,13 +9,15 @@ import { ClockClockwiseIcon } from "phosphor-react-native/src/icons/ClockClockwi
 import { LockKeyIcon } from "phosphor-react-native/src/icons/LockKey";
 import { ShareNetworkIcon } from "phosphor-react-native/src/icons/ShareNetwork";
 import { useMemo, useRef, useState } from "react";
-import { Alert, FlatList, Modal, Pressable, RefreshControl, ScrollView, Share, Text, View } from "react-native";
+import { Alert, FlatList, Modal, Pressable, RefreshControl, ScrollView, Share, View } from "react-native";
+import Animated from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboard } from "../../data/dashboard-context";
 import { authClient, wakatimeConnectionAvailable } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
+import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 
 type Palette = ReturnType<typeof usePalette>;
 
@@ -147,6 +150,7 @@ function ProjectTimeline({ projects, totalSeconds, palette }: { projects: Breakd
 
 export function ActivityTimeline() {
   const palette = usePalette();
+  const { offset, onScroll } = useAndroidPageScroll();
   const insets = useSafeAreaInsets();
   const { summaries, goalSeconds, syncing, syncWakaTime, refresh } = useDashboard();
   const todayKey = useMemo(() => localDateKey(new Date()), []);
@@ -183,13 +187,16 @@ export function ActivityTimeline() {
     }
   }
 
-  return <>
-    <ScrollView
+  return <AndroidPageFrame title="Activity" offset={offset} back>
+    <Animated.ScrollView
       contentInsetAdjustmentBehavior="automatic"
+      onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined}
+      scrollEventThrottle={16}
       refreshControl={<RefreshControl refreshing={syncing} onRefresh={() => void refreshActivity()} tintColor={palette.primary} />}
       style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 17, paddingHorizontal: 16, paddingTop: 12, paddingBottom: Math.max(36, insets.bottom + 24) }}
     >
+      <AndroidLargeTitle title="Activity" offset={offset} back />
       <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
         <ScaleButton label="Previous day" disabled={selectedKey <= earliestKey} onPress={() => selectDay(adjacentDay(selectedKey, -1))} style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeSubtle }}><CaretLeftIcon color={palette.text} size={17} weight="bold" /></ScaleButton>
         <ScaleButton label="Choose a saved day" onPress={() => setPickerOpen(true)} style={{ minHeight: 38, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, borderRadius: 999, backgroundColor: palette.homeSubtle }}>
@@ -227,7 +234,7 @@ export function ActivityTimeline() {
       <ScaleButton label="Open Analytics" onPress={() => router.navigate("/(tabs)/(insights)")} glass="regular" style={{ minHeight: 50, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 999, backgroundColor: palette.primary }}><Text style={{ color: palette.onPrimary, fontSize: 13, fontWeight: "800" }}>View Analytics</Text><CaretRightIcon color={palette.onPrimary} size={17} weight="bold" /></ScaleButton>
       <View style={{ alignItems: "center", gap: 5, paddingVertical: 8 }}><View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><LockKeyIcon color={palette.primary} size={14} weight="bold" /><Text style={{ color: palette.muted, fontSize: 11, fontWeight: "700" }}>Private & offline first</Text></View><Text style={{ color: palette.muted, fontSize: 10, textAlign: "center" }}>Daily totals and breakdowns are cached locally.</Text></View>
       <ScaleButton label="Refresh activity" onPress={() => void refreshActivity()} style={{ alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 5, padding: 8 }}><ClockClockwiseIcon color={palette.primary} size={16} weight="bold" /><Text style={{ color: palette.primary, fontSize: 11, fontWeight: "700" }}>Refresh activity</Text></ScaleButton>
-    </ScrollView>
+    </Animated.ScrollView>
     <DayPicker visible={pickerOpen} dates={dates} selectedKey={selectedKey} todayKey={todayKey} onSelect={selectDay} onClose={() => setPickerOpen(false)} palette={palette} />
-  </>;
+  </AndroidPageFrame>;
 }

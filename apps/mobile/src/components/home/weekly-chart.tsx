@@ -1,5 +1,6 @@
+import { Text } from "../ui/app-text";
 import { formatDuration } from "@wakaboard/core";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import { usePalette } from "../../theme";
 import type { WeeklyChartDay } from "./weekly-chart-data";
 

@@ -1,16 +1,19 @@
+import { Text } from "../ui/app-text";
 import { formatDuration, type Breakdown } from "@wakaboard/core";
 import { router } from "expo-router";
 import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { ChartLineUpIcon } from "phosphor-react-native/src/icons/ChartLineUp";
 import { ShareNetworkIcon } from "phosphor-react-native/src/icons/ShareNetwork";
 import { useMemo, useState, type ReactNode } from "react";
-import { Alert, ScrollView, Share, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { Alert, Share, View, type StyleProp, type ViewStyle } from "react-native";
+import Animated from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboard } from "../../data/dashboard-context";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
 import { SegmentedPicker } from "../ui/segmented-picker";
+import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 import { buildAnalytics, type AnalyticsRange, type CadenceBucket } from "./analytics-data";
 
 type Palette = ReturnType<typeof usePalette>;
@@ -150,6 +153,7 @@ function BreakdownCard({ title, rows, palette }: { title: string; rows: Breakdow
 
 export function AnalyticsDashboard() {
   const palette = usePalette();
+  const { offset, onScroll } = useAndroidPageScroll();
   const insets = useSafeAreaInsets();
   const { summaries, loading, error } = useDashboard();
   const [range, setRange] = useState<AnalyticsRange>(30);
@@ -168,11 +172,15 @@ export function AnalyticsDashboard() {
     }
   }
   return (
-    <ScrollView
+    <AndroidPageFrame title="Analytics" offset={offset}>
+    <Animated.ScrollView
       contentInsetAdjustmentBehavior="automatic"
+      onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined}
+      scrollEventThrottle={16}
       style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 16, paddingHorizontal: 16, paddingTop: 12, paddingBottom: Math.max(32, insets.bottom + 24) }}
     >
+      <AndroidLargeTitle title="Analytics" offset={offset} />
       <RangePicker range={range} onChange={(next) => { setRange(next); setSelectedBucket(null); }} />
       <DigestCard data={data} range={range} palette={palette} />
       {loading ? <Text style={{ color: palette.muted, fontSize: 13 }}>Loading saved activity…</Text> : error ? <Text accessibilityRole="alert" style={{ color: palette.error, fontSize: 13 }}>{error}</Text> : null}
@@ -194,6 +202,7 @@ export function AnalyticsDashboard() {
         <View style={{ flex: 1, gap: 3 }}><Text style={{ color: palette.text, fontSize: 15, fontWeight: "800" }}>Activity timeline</Text><Text style={{ color: palette.muted, fontSize: 11 }}>Explore your saved coding days</Text></View>
         <CaretRightIcon color={palette.primary} size={20} weight="bold" />
       </ScaleButton>
-    </ScrollView>
+    </Animated.ScrollView>
+    </AndroidPageFrame>
   );
 }

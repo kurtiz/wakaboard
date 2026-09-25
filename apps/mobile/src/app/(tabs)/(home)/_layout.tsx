@@ -1,5 +1,12 @@
 import { Stack } from "expo-router";
+import { pageHeaderOptions } from "../../../components/navigation/page-header-options";
+import { useFontChoice } from "../../../font-choice";
+import { usePalette } from "../../../theme";
 
 export default function HomeLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  const palette = usePalette();
+  const { font } = useFontChoice();
+  return <Stack screenOptions={pageHeaderOptions(palette, font)}>
+    <Stack.Screen name="index" options={{ title: "Today" }} />
+  </Stack>;
 }

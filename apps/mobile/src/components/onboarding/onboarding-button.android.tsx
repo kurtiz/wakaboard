@@ -1,4 +1,5 @@
-import { Pressable, Text } from "react-native";
+import { Text } from "../ui/app-text";
+import { Pressable } from "react-native";
 import Animated from "react-native-reanimated";
 import { usePalette } from "../../theme";
 import { usePressScale } from "../ui/use-press-scale.android";

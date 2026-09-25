@@ -1,18 +1,14 @@
 import { Stack } from "expo-router";
+import { pageHeaderOptions } from "../../../components/navigation/page-header-options";
+import { useFontChoice } from "../../../font-choice";
 import { usePalette } from "../../../theme";
 
 export default function InsightsLayout() {
   const palette = usePalette();
+  const { font } = useFontChoice();
   return (
-    <Stack
-      screenOptions={{
-        contentStyle: { backgroundColor: palette.background },
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: palette.background },
-        headerTintColor: palette.text,
-      }}
-    >
-      <Stack.Screen name="index" options={{ title: "Analytics", headerLargeTitle: false }} />
+    <Stack screenOptions={pageHeaderOptions(palette, font)}>
+      <Stack.Screen name="index" options={{ title: "Analytics" }} />
     </Stack>
   );
 }

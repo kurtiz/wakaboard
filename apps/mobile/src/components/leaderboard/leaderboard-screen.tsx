@@ -1,9 +1,11 @@
+import { Text } from "../ui/app-text";
 import { formatDuration } from "@wakaboard/core";
 import { router } from "expo-router";
 import { GlobeIcon } from "phosphor-react-native/src/icons/Globe";
 import { LockKeyIcon } from "phosphor-react-native/src/icons/LockKey";
 import { MedalIcon } from "phosphor-react-native/src/icons/Medal";
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useLeaderboards } from "../../data/leaderboard-context";
 import type { Leader, LeaderboardScope } from "../../data/leaderboards";
 import { usePalette } from "../../theme";
@@ -12,6 +14,7 @@ import { SegmentedPicker } from "../ui/segmented-picker";
 import { useLeaderboardScope } from "./leaderboard-scope";
 import { MemberAvatar } from "./member-avatar";
 import { StandingOverlay } from "./standing-overlay";
+import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 
 type Palette = ReturnType<typeof usePalette>;
 
@@ -94,6 +97,7 @@ function RankingRow({ leader, scope, currentRank, palette }: { leader: Leader; s
 
 export function LeaderboardScreen() {
   const palette = usePalette();
+  const { offset, onScroll } = useAndroidPageScroll();
   const { boards, loading, error, refresh } = useLeaderboards();
   const { scope, setScope } = useLeaderboardScope();
   const board = boards[scope];
@@ -102,8 +106,9 @@ export function LeaderboardScreen() {
   const updated = board?.updatedAt ? new Date(board.updatedAt) : null;
   const updatedLabel = updated && !Number.isNaN(updated.getTime()) ? `Updated ${updated.toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : "WakaTime rankings";
 
-  return <View style={{ flex: 1, backgroundColor: palette.background }}>
-    <ScrollView contentInsetAdjustmentBehavior="automatic" refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void refresh()} tintColor={palette.primary} />} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 17, paddingBottom: board ? 220 : 30, gap: 18 }}>
+  return <AndroidPageFrame title="Leaderboards" offset={offset}>
+    <Animated.ScrollView contentInsetAdjustmentBehavior="automatic" onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined} scrollEventThrottle={16} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void refresh()} tintColor={palette.primary} />} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 17, paddingBottom: board ? 220 : 30, gap: 18 }}>
+      <AndroidLargeTitle title="Leaderboards" offset={offset} />
       <ScopeSelector scope={scope} countryCode={countryCode} onChange={setScope} palette={palette} />
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <View style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: palette.homeSurface }}><Text style={{ color: palette.muted, fontSize: 11, fontWeight: "700" }}>Last 7 days</Text></View>
@@ -139,7 +144,7 @@ export function LeaderboardScreen() {
           <Text style={{ color: palette.muted, fontSize: 11 }}>Public leaderboard data from WakaTime</Text>
         </View>
       </> : null}
-    </ScrollView>
+    </Animated.ScrollView>
     <StandingOverlay board={board} scope={scope} countryCode={countryCode} />
-  </View>;
+  </AndroidPageFrame>;
 }

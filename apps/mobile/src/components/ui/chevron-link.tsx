@@ -1,6 +1,7 @@
+import { Text } from "./app-text";
 import { router, type Href } from "expo-router";
 import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
-import { Pressable, Text, type StyleProp, type ViewStyle } from "react-native";
+import { Pressable, type StyleProp, type ViewStyle } from "react-native";
 
 export function ChevronLink({ href, label, color, fontSize = 13, style }: {
   href: Href;

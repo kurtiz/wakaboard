@@ -1,14 +1,17 @@
+import { Text } from "../ui/app-text";
 import { formatDuration, localDateKey } from "@wakaboard/core";
 import { useLocalSearchParams } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { useDashboard } from "../../data/dashboard-context";
 import { loadCachedMemberProfile, saveCachedMemberProfile } from "../../data/dashboard-store";
 import { useLeaderboards } from "../../data/leaderboard-context";
 import { fetchMemberProfile, type Leader, type MemberProfile } from "../../data/leaderboards";
 import { authClient } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
+import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 import { MemberAvatar } from "./member-avatar";
 
 function flag(code: string | null | undefined): string {
@@ -17,6 +20,7 @@ function flag(code: string | null | undefined): string {
 }
 
 export function MemberProfileScreen() {
+  const { offset, onScroll } = useAndroidPageScroll();
   const { id } = useLocalSearchParams<{ id: string }>();
   const isCurrent = id === "current";
   const palette = usePalette();
@@ -69,7 +73,9 @@ export function MemberProfileScreen() {
   const totalSeconds = leader?.seconds ?? (isCurrent ? summaries.filter((day) => day.date >= cutoffKey).reduce((sum, day) => sum + day.totalSeconds, 0) : null);
   const maxLanguageSeconds = Math.max(1, ...languages.map((language) => language.seconds));
 
-  return <ScrollView contentInsetAdjustmentBehavior="automatic" style={{ flex: 1, backgroundColor: palette.background }} contentContainerStyle={{ padding: 18, paddingBottom: 40, gap: 18 }}>
+  return <AndroidPageFrame title="Profile" offset={offset} back>
+    <Animated.ScrollView contentInsetAdjustmentBehavior="automatic" onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined} scrollEventThrottle={16} style={{ flex: 1, backgroundColor: palette.background }} contentContainerStyle={{ padding: 18, paddingBottom: 40, gap: 18 }}>
+    <AndroidLargeTitle title="Profile" offset={offset} back />
     <View style={{ alignItems: "center", gap: 9, padding: 23, borderRadius: 24, backgroundColor: palette.homeHero }}>
       <MemberAvatar id={profile?.id ?? id} name={name} photo={photo} size={78} dark />
       <Text selectable accessibilityRole="header" style={{ color: palette.homeHeroText, fontSize: 23, fontWeight: "800", textAlign: "center" }}>{name}</Text>
@@ -98,5 +104,6 @@ export function MemberProfileScreen() {
         <View style={{ height: 6, borderRadius: 3, backgroundColor: palette.track, overflow: "hidden" }}><View style={{ width: `${Math.max(2, language.seconds / maxLanguageSeconds * 100)}%`, height: 6, borderRadius: 3, backgroundColor: palette.primary }} /></View>
       </View>) : <Text style={{ color: palette.muted, fontSize: 12 }}>No public language data is available for this profile.</Text>}
     </View>
-  </ScrollView>;
+    </Animated.ScrollView>
+  </AndroidPageFrame>;
 }

@@ -1,5 +1,6 @@
+import { Text } from "./app-text";
 import { useLayoutEffect, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 import { usePalette } from "../../theme";
 import type { SegmentedPickerProps } from "./segmented-picker.types";
