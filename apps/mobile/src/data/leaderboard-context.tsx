@@ -1,13 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Image } from "expo-image";
 import * as SecureStore from "expo-secure-store";
 import { authClient, wakatimeConnectionAvailable } from "./wakatime-client";
-import { fetchLeaderboard, type Leaderboard, type LeaderboardScope } from "./leaderboards";
-import { loadCachedLeaderboards, saveCachedLeaderboard } from "./dashboard-store";
-import { cacheAvatar } from "./avatar-cache";
+import { fetchLeaderboard, fetchMemberProfile, type Leaderboard, type LeaderboardScope, type MemberProfile } from "./leaderboards";
+import { loadCachedLeaderboards, loadCachedMemberProfile, saveCachedLeaderboard, saveCachedMemberProfile } from "./dashboard-store";
 
 type Boards = Record<LeaderboardScope, Leaderboard | null>;
 type LeaderboardContextValue = {
   boards: Boards;
+  currentProfile: MemberProfile | null;
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -19,6 +20,7 @@ const CACHED_USER_KEY = "leaderboard_user_id";
 
 export function LeaderboardProvider({ children }: { children: ReactNode }) {
   const [boards, setBoards] = useState<Boards>({ country: null, global: null });
+  const [currentProfile, setCurrentProfile] = useState<MemberProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,10 +30,26 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
     try {
       const { data: session } = await authClient.getSession();
       if (!session?.user) throw new Error("Connect WakaTime to see the leaderboards.");
-      const [global, country] = await Promise.all([fetchLeaderboard("global"), fetchLeaderboard("country")]);
+      if (session.user.image) setCurrentProfile({
+        id: session.user.id, name: session.user.name, username: null,
+        photo: session.user.image, bio: null, website: null, countryCode: null, location: null,
+      });
+      const [globalResult, countryResult, profileResult] = await Promise.allSettled([
+        fetchLeaderboard("global"),
+        fetchLeaderboard("country"),
+        fetchMemberProfile("current"),
+      ]);
+      const profile = profileResult.status === "fulfilled" ? profileResult.value : null;
+      if (profile) setCurrentProfile(profile);
+      if (profile) void saveCachedMemberProfile(session.user.id, "current", profile).catch(() => {});
+      if (profile?.photo) void Image.prefetch(profile.photo, "disk").catch(() => {});
+      if (globalResult.status === "rejected") throw globalResult.reason;
+      if (countryResult.status === "rejected") throw countryResult.reason;
+      const global = globalResult.value;
+      const country = countryResult.value;
       setBoards({ global, country });
-      const avatars = new Map([...global.leaders, ...country.leaders].filter((leader) => leader.photo).map((leader) => [leader.id, leader.photo!]));
-      void Promise.allSettled([...avatars].map(([id, photo]) => cacheAvatar(id, photo)));
+      const photos = [...new Set([...global.leaders, ...country.leaders].map((leader) => leader.photo).filter((photo): photo is string => !!photo))];
+      if (photos.length) void Image.prefetch(photos, "disk").catch(() => {});
       await Promise.allSettled([
         SecureStore.setItemAsync(CACHED_USER_KEY, session.user.id),
         saveCachedLeaderboard(session.user.id, global),
@@ -49,8 +67,12 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
     void Promise.all([authClient.getCookie(), SecureStore.getItemAsync(CACHED_USER_KEY)]).then(async ([cookie, userId]) => {
       if (!cookie) return;
       if (userId) {
-        const cached = await loadCachedLeaderboards(userId);
+        const [cached, profile] = await Promise.all([
+          loadCachedLeaderboards(userId),
+          loadCachedMemberProfile(userId, "current"),
+        ]);
         setBoards({ country: cached.country ?? null, global: cached.global ?? null });
+        setCurrentProfile(profile);
       }
       await refresh();
     }).catch(() => {});
@@ -58,11 +80,12 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
 
   const clear = useCallback(() => {
     setBoards({ country: null, global: null });
+    setCurrentProfile(null);
     setError(null);
     void SecureStore.deleteItemAsync(CACHED_USER_KEY);
   }, []);
 
-  const value = useMemo(() => ({ boards, loading, error, refresh, clear }), [boards, loading, error, refresh, clear]);
+  const value = useMemo(() => ({ boards, currentProfile, loading, error, refresh, clear }), [boards, currentProfile, loading, error, refresh, clear]);
   return <LeaderboardContext.Provider value={value}>{children}</LeaderboardContext.Provider>;
 }
 

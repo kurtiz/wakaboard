@@ -5,7 +5,7 @@ import { ChartLineUpIcon } from "phosphor-react-native/src/icons/ChartLineUp";
 import { FireIcon } from "phosphor-react-native/src/icons/Fire";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
-import Svg, { Circle, Path } from "react-native-svg";
+import Svg, { Circle } from "react-native-svg";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingButton } from "../onboarding/onboarding-button";
@@ -16,6 +16,8 @@ import { useLeaderboards } from "../../data/leaderboard-context";
 import { authClient, wakatimeConnectionAvailable } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
 import { usePressScale } from "../ui/use-press-scale";
+import { MemberAvatar } from "../leaderboard/member-avatar";
+import type { MemberProfile } from "../../data/leaderboards";
 
 type Palette = ReturnType<typeof usePalette>;
 type Day = { key: string; label: string; seconds: number };
@@ -58,7 +60,7 @@ function SectionTitle({ title, kicker, trailing, palette }: { title: string; kic
   );
 }
 
-function HomeHeader({ today, name, syncing, sample, hasActivity, onSync, palette }: { today: Date; name: string | null; syncing: boolean; sample: boolean; hasActivity: boolean; onSync: () => void; palette: Palette }) {
+function HomeHeader({ today, name, profile, syncing, sample, hasActivity, onSync, palette }: { today: Date; name: string | null; profile: MemberProfile | null; syncing: boolean; sample: boolean; hasActivity: boolean; onSync: () => void; palette: Palette }) {
   const syncPress = usePressScale();
   const profilePress = usePressScale();
   const hour = today.getHours();
@@ -78,7 +80,7 @@ function HomeHeader({ today, name, syncing, sample, hasActivity, onSync, palette
             </Pressable>
           </Animated.View>
           <Animated.View style={profilePress.style}>
-            <Link href="/profile/current" asChild><Pressable accessibilityRole="button" accessibilityLabel="Open your WakaTime profile" onPressIn={profilePress.onPressIn} onPressOut={profilePress.onPressOut} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: palette.homeHero, alignItems: "center", justifyContent: "center" }}><Svg width={19} height={19} viewBox="0 0 24 24"><Circle cx="12" cy="8" r="3.5" fill="none" stroke={palette.homeHeroText} strokeWidth="2" /><Path d="M5 20c0-4 3-6 7-6s7 2 7 6" fill="none" stroke={palette.homeHeroText} strokeWidth="2" strokeLinecap="round" /></Svg></Pressable></Link>
+            <Link href="/profile/current" asChild><Pressable accessibilityRole="button" accessibilityLabel="Open your WakaTime profile" onPressIn={profilePress.onPressIn} onPressOut={profilePress.onPressOut} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: palette.homeHero, alignItems: "center", justifyContent: "center" }}><MemberAvatar id={profile?.id ?? "current"} name={profile?.name ?? name ?? "You"} photo={profile?.photo} size={38} dark fallbackText="YOU" /></Pressable></Link>
           </Animated.View>
         </View>
       </View>
@@ -257,7 +259,7 @@ export function HomeDashboard() {
   const palette = usePalette();
   const insets = useSafeAreaInsets();
   const { summaries, goalSeconds, loading, error, syncing, syncError, addSample, refresh, syncWakaTime } = useDashboard();
-  const { refresh: refreshLeaderboards } = useLeaderboards();
+  const { currentProfile, refresh: refreshLeaderboards } = useLeaderboards();
   const [name, setName] = useState<string | null>(null);
   const today = useMemo(() => new Date(), []);
   const days = daysForWeek(today, summaries);
@@ -289,7 +291,7 @@ export function HomeDashboard() {
       style={{ backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 16, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 38 }}
     >
-      <HomeHeader today={today} name={name} syncing={syncing} sample={sample} hasActivity={summaries.length > 0} onSync={() => void refreshActivity()} palette={palette} />
+      <HomeHeader today={today} name={name} profile={currentProfile} syncing={syncing} sample={sample} hasActivity={summaries.length > 0} onSync={() => void refreshActivity()} palette={palette} />
       {syncError ? <Text accessibilityRole="alert" style={{ color: palette.error, fontSize: 13 }}>{syncError}</Text> : null}
       {loading ? <ActivityIndicator color={palette.accent} style={{ paddingVertical: 65 }} /> : error ? <SurfaceCard palette={palette}><Text style={{ color: palette.text, fontWeight: "800" }}>Local data unavailable</Text><Text style={{ color: palette.muted }}>{error}</Text><OnboardingButton label="Try again" onPress={() => void refresh()} /></SurfaceCard> : summaries.length === 0 ? <SurfaceCard palette={palette}><SectionTitle title="Make your coding visible" palette={palette} /><Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>Your WakaTime activity will appear after your first sync. You can explore with sample data meanwhile.</Text><OnboardingButton label="Explore sample data" onPress={() => void addSample()} /></SurfaceCard> : <>
         {sample ? <Text style={{ color: palette.primary, fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>SAMPLE ACTIVITY</Text> : null}

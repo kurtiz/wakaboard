@@ -1,6 +1,8 @@
 import { Text, View } from "react-native";
+import { useLeaderboards } from "../../data/leaderboard-context";
 import type { Leaderboard, LeaderboardScope } from "../../data/leaderboards";
 import { usePalette } from "../../theme";
+import { MemberAvatar } from "./member-avatar";
 
 function countryName(code: string | null): string {
   if (code === "GH") return "Ghana";
@@ -16,6 +18,7 @@ export function StandingCard({ board, scope, countryCode, compact = false }: {
   compact?: boolean;
 }) {
   const palette = usePalette();
+  const { currentProfile } = useLeaderboards();
   const location = scope === "global" ? "Global" : countryName(countryCode);
   return <View style={{
     borderRadius: compact ? 999 : 20,
@@ -28,9 +31,7 @@ export function StandingCard({ board, scope, countryCode, compact = false }: {
     borderWidth: 1,
     borderColor: palette.homeHero,
   }}>
-    <View style={{ width: compact ? 28 : 34, height: compact ? 28 : 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeHeroChip }}>
-      <Text style={{ color: palette.homeHeroText, fontSize: compact ? 9 : 10, fontWeight: "800" }}>YOU</Text>
-    </View>
+    <MemberAvatar id={currentProfile?.id ?? "current"} name={currentProfile?.name ?? "You"} photo={currentProfile?.photo} size={compact ? 28 : 34} dark fallbackText="YOU" />
     {!compact ? <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
       <Text style={{ color: palette.homeHeroText, fontSize: 13, fontWeight: "800" }}>Your standing</Text>
       <Text style={{ color: palette.homeHeroMuted, fontSize: 11 }}>{location} · Last 7 days</Text>

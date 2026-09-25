@@ -20,7 +20,7 @@ export function MemberProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const isCurrent = id === "current";
   const palette = usePalette();
-  const { boards } = useLeaderboards();
+  const { boards, currentProfile } = useLeaderboards();
   const { summaries } = useDashboard();
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,8 +62,8 @@ export function MemberProfileScreen() {
     return [...totals].map(([name, seconds]) => ({ name, seconds })).sort((a, b) => b.seconds - a.seconds);
   }, [summaries, cutoffKey]);
   const languages = leader?.languages?.length ? leader.languages : isCurrent ? ownLanguages : [];
-  const name = profile?.name ?? leader?.name ?? (isCurrent ? "Your profile" : "WakaTime member");
-  const photo = profile?.photo ?? leader?.photo;
+  const name = profile?.name ?? (isCurrent ? currentProfile?.name : leader?.name) ?? (isCurrent ? "Your profile" : "WakaTime member");
+  const photo = profile?.photo ?? (isCurrent ? currentProfile?.photo : leader?.photo);
   const countryCode = profile?.countryCode ?? leader?.countryCode;
   const rank = leader?.rank ?? (isCurrent ? boards.global?.rank : null);
   const totalSeconds = leader?.seconds ?? (isCurrent ? summaries.filter((day) => day.date >= cutoffKey).reduce((sum, day) => sum + day.totalSeconds, 0) : null);
