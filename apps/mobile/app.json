@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "scheme": "wakaboard",
+    "userInterfaceStyle": "automatic",
+    "orientation": "default",
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-sharing",
+      "expo-localization",
+      "expo-image",
+      "expo-font",
+      "expo-splash-screen",
+      "expo-background-task",
+      "expo-notifications",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ]
+    ],
+    "name": "WakaBoard",
+    "slug": "wakaboard",
+    "android": {
+      "package": "com.empiredhv.wakaboard"
+    },
+    "ios": {
+      "bundleIdentifier": "com.empiredhv.wakaboard"
+    }
+  }
+}
