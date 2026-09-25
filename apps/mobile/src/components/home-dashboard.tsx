@@ -1,5 +1,5 @@
 import { formatDuration, goalProgress, localDateKey, type Breakdown, type DailySummary } from "@wakaboard/core";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { ChartLineUpIcon } from "phosphor-react-native/src/icons/ChartLineUp";
 import { FireIcon } from "phosphor-react-native/src/icons/Fire";
@@ -237,16 +237,14 @@ function WeeklyInsight({ days, palette }: { days: Day[]; palette: Palette }) {
   const weekday = new Date(`${peak.key}T12:00:00`).toLocaleDateString(undefined, { weekday: "long" });
   return (
     <Animated.View style={[press.style, { width: "100%" }]}>
-      <Link href="/(tabs)/(insights)" asChild>
-        <Pressable accessibilityRole="button" accessibilityLabel={`Best coding day: ${weekday}, ${formatDuration(peak.seconds)}. See weekly insights`} onPressIn={press.onPressIn} onPressOut={press.onPressOut} style={({ pressed }) => ({ width: "100%", minHeight: 78, flexDirection: "row", alignItems: "center", gap: 13, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 24, backgroundColor: palette.homeSurface, opacity: pressed ? 0.76 : 1 })}>
-          <View style={{ width: 42, height: 42, borderRadius: 16, backgroundColor: palette.homeMintSurface, alignItems: "center", justifyContent: "center" }}><ChartLineUpIcon color={palette.primary} size={22} weight="bold" /></View>
-          <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
-            <Text numberOfLines={1} style={{ color: palette.text, fontSize: 15, fontWeight: "800" }}>Best coding day</Text>
-            <Text numberOfLines={1} style={{ color: palette.muted, fontSize: 12 }}>{weekday} · {formatDuration(peak.seconds)} of coding</Text>
-          </View>
-          <CaretRightIcon color={palette.muted} size={20} weight="bold" />
-        </Pressable>
-      </Link>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Best coding day: ${weekday}, ${formatDuration(peak.seconds)}. See weekly insights`} onPress={() => router.push("/(tabs)/(insights)")} onPressIn={press.onPressIn} onPressOut={press.onPressOut} style={({ pressed }) => ({ width: "100%", minHeight: 78, flexDirection: "row", alignItems: "center", gap: 13, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 24, backgroundColor: palette.homeSurface, opacity: pressed ? 0.76 : 1 })}>
+        <View style={{ width: 42, height: 42, borderRadius: 16, backgroundColor: palette.homeMintSurface, alignItems: "center", justifyContent: "center" }}><ChartLineUpIcon color={palette.primary} size={22} weight="bold" /></View>
+        <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+          <Text numberOfLines={1} style={{ color: palette.text, fontSize: 15, fontWeight: "800" }}>Best coding day</Text>
+          <Text numberOfLines={1} style={{ color: palette.muted, fontSize: 12 }}>{weekday} · {formatDuration(peak.seconds)} of coding</Text>
+        </View>
+        <CaretRightIcon color={palette.muted} size={20} weight="bold" />
+      </Pressable>
     </Animated.View>
   );
 }
