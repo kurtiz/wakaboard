@@ -22,7 +22,7 @@ export function AnimatedStandingOverlay({ board, scope, countryCode, bottom, hor
     cancelAnimation(translateY);
     translateY.set(entryDistance);
     if (visible) {
-      translateY.set(reducedMotion ? 0 : withSpring(0, { damping: 24, stiffness: 180, mass: 1, overshootClamping: true }));
+      translateY.set(reducedMotion ? 0 : withSpring(0, { damping: 30, stiffness: 350, mass: 0.8, overshootClamping: true }));
     }
     return () => {
       cancelAnimation(translateY);
