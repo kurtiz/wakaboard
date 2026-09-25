@@ -1,6 +1,7 @@
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
+import { LoadingIndicator } from "../../components/ui/loading-indicator";
 import { LeaderboardScopeProvider } from "../../components/leaderboard/leaderboard-scope";
 import { NativeTabNavigation } from "../../components/navigation/native-tabs";
 import { authClient } from "../../data/wakatime-client";
@@ -18,7 +19,7 @@ export default function TabLayout() {
     return () => { active = false; };
   }, []);
 
-  if (signedIn === null) return <View style={{ flex: 1, justifyContent: "center", backgroundColor: palette.background }}><ActivityIndicator color={palette.primary} /></View>;
+  if (signedIn === null) return <View style={{ flex: 1, justifyContent: "center", backgroundColor: palette.background }}><LoadingIndicator color={palette.primary} /></View>;
   if (!signedIn) return <Redirect href="/auth" />;
 
   return <LeaderboardScopeProvider><NativeTabNavigation /></LeaderboardScopeProvider>;

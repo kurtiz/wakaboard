@@ -2,10 +2,11 @@ import { Text } from "../components/ui/app-text";
 import { router } from "expo-router";
 import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BrandMark, OnboardingArt } from "../components/onboarding/onboarding-art";
 import { OnboardingButton } from "../components/onboarding/onboarding-button";
+import { LoadingIndicator } from "../components/ui/loading-indicator";
 import { HapticPreset } from "../constants/haptics";
 import { useDashboard } from "../data/dashboard-context";
 import { useLeaderboards } from "../data/leaderboard-context";
@@ -54,7 +55,7 @@ export default function AuthScreen() {
       <View style={{ gap: 12, alignItems: "center" }}>
         {error && <Text accessibilityRole="alert" style={{ color: palette.error, textAlign: "center" }}>{error}</Text>}
         {wakatimeConnectionAvailable ? (
-          <OnboardingButton label={busy ? "Connecting…" : "Connect WakaTime"} disabled={busy} onPress={() => void connect()} trailing={busy ? <ActivityIndicator color={palette.onPrimary} /> : <CaretRightIcon color={palette.onPrimary} size={19} weight="bold" />} />
+          <OnboardingButton label={busy ? "Connecting…" : "Connect WakaTime"} disabled={busy} onPress={() => void connect()} trailing={busy ? <LoadingIndicator color={palette.onPrimary} size="small" /> : <CaretRightIcon color={palette.onPrimary} size={19} weight="bold" />} />
         ) : (
           <Text style={{ color: palette.muted, textAlign: "center" }}>WakaTime connection is not configured on this build.</Text>
         )}

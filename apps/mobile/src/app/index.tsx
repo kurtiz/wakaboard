@@ -1,6 +1,7 @@
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
+import { LoadingIndicator } from "../components/ui/loading-indicator";
 import { useDashboard } from "../data/dashboard-context";
 import { authClient } from "../data/wakatime-client";
 import { usePalette } from "../theme";
@@ -19,7 +20,7 @@ export default function Index() {
   }, []);
 
   if (loading || signedIn === null) {
-    return <View style={{ flex: 1, justifyContent: "center", backgroundColor: palette.background }}><ActivityIndicator color={palette.primary} /></View>;
+    return <View style={{ flex: 1, justifyContent: "center", backgroundColor: palette.background }}><LoadingIndicator color={palette.primary} /></View>;
   }
   return <Redirect href={signedIn ? "/(tabs)/(home)" : onboardingComplete ? "/auth" : "/onboarding"} />;
 }

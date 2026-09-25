@@ -5,11 +5,13 @@ import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { ChartLineUpIcon } from "phosphor-react-native/src/icons/ChartLineUp";
 import { FireIcon } from "phosphor-react-native/src/icons/Fire";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, View } from "react-native";
+import { Pressable, RefreshControl, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import Animated from "react-native-reanimated";
 import { OnboardingButton } from "../onboarding/onboarding-button";
 import { ChevronLink } from "../ui/chevron-link";
+import { LoadingIndicator } from "../ui/loading-indicator";
+import { RefreshIndicator } from "../ui/refresh-indicator";
 import { BrandMark } from "../ui/brand-mark";
 import { useDashboard } from "../../data/dashboard-context";
 import { runManualRefresh, type RefreshOutcome } from "../../haptic-actions";
@@ -294,14 +296,14 @@ export function HomeDashboard() {
       contentInsetAdjustmentBehavior="automatic"
       onScroll={android ? onScroll : undefined}
       scrollEventThrottle={16}
-      refreshControl={<RefreshControl refreshing={syncing || pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.accent} />}
+      refreshControl={<RefreshControl refreshing={syncing || pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.accent} colors={android ? ["transparent"] : undefined} progressBackgroundColor={android ? "transparent" : undefined} progressViewOffset={android ? -100 : undefined} />}
       style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 16, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 38 }}
     >
       <AndroidLargeTitle title="Today" offset={offset} />
       <HomeHeader today={today} name={name} profile={currentProfile} syncing={syncing} sample={sample} hasActivity={summaries.length > 0} palette={palette} />
       {syncError ? <Text accessibilityRole="alert" style={{ color: palette.error, fontSize: 13 }}>{syncError}</Text> : null}
-      {loading ? <ActivityIndicator color={palette.accent} style={{ paddingVertical: 65 }} /> : error ? <SurfaceCard palette={palette}><Text style={{ color: palette.text, fontWeight: "800" }}>Local data unavailable</Text><Text style={{ color: palette.muted }}>{error}</Text><OnboardingButton label="Try again" onPress={() => void refresh()} /></SurfaceCard> : summaries.length === 0 ? <SurfaceCard palette={palette}><SectionTitle title="Make your coding visible" palette={palette} /><Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>Your WakaTime activity will appear after your first sync. You can explore with sample data meanwhile.</Text><OnboardingButton label="Explore sample data" onPress={() => void addSample()} /></SurfaceCard> : <>
+      {loading ? <LoadingIndicator color={palette.accent} style={{ paddingVertical: 65 }} /> : error ? <SurfaceCard palette={palette}><Text style={{ color: palette.text, fontWeight: "800" }}>Local data unavailable</Text><Text style={{ color: palette.muted }}>{error}</Text><OnboardingButton label="Try again" onPress={() => void refresh()} /></SurfaceCard> : summaries.length === 0 ? <SurfaceCard palette={palette}><SectionTitle title="Make your coding visible" palette={palette} /><Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>Your WakaTime activity will appear after your first sync. You can explore with sample data meanwhile.</Text><OnboardingButton label="Explore sample data" onPress={() => void addSample()} /></SurfaceCard> : <>
         {sample ? <Text style={{ color: palette.primary, fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>SAMPLE ACTIVITY</Text> : null}
         <HeroCard total={total} goalSeconds={goalSeconds} progress={progress} streak={streak} dailyAverage={dailyAverage} palette={palette} />
         {!android ? <GoalBooster remaining={remaining} palette={palette} /> : null}
@@ -322,6 +324,7 @@ export function HomeDashboard() {
         <ChevronLink href="/activity" label="View activity timeline" color={palette.primary} fontSize={14} style={{ alignSelf: "center", paddingVertical: 10 }} />
       </> : null}
     </Animated.ScrollView>
+    <RefreshIndicator visible={pullRefreshing} color={palette.accent} />
     </AndroidPageFrame>
   );
 }

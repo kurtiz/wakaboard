@@ -3,7 +3,7 @@ import { formatDuration, localDateKey } from "@wakaboard/core";
 import { useLocalSearchParams } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useDashboard } from "../../data/dashboard-context";
 import { loadCachedMemberProfile, saveCachedMemberProfile } from "../../data/dashboard-store";
@@ -13,6 +13,7 @@ import { authClient } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 import { MemberAvatar } from "./member-avatar";
+import { LoadingIndicator } from "../ui/loading-indicator";
 
 function flag(code: string | null | undefined): string {
   if (!code || !/^[A-Z]{2}$/.test(code.toUpperCase())) return "";
@@ -84,7 +85,7 @@ export function MemberProfileScreen() {
       {profile?.bio ? <Text selectable style={{ color: palette.homeHeroText, fontSize: 13, textAlign: "center", lineHeight: 19 }}>{profile.bio}</Text> : null}
       {profile?.website ? <Text selectable style={{ color: palette.homeHeroMuted, fontSize: 11 }}>{profile.website}</Text> : null}
     </View>
-    {loading && !profile && !leader ? <ActivityIndicator color={palette.primary} /> : null}
+    {loading && !profile && !leader ? <LoadingIndicator color={palette.primary} /> : null}
     {error ? <Text accessibilityRole="alert" style={{ color: palette.muted, fontSize: 12 }}>{error}</Text> : null}
     <View style={{ flexDirection: "row", gap: 10 }}>
       <View style={{ flex: 1, padding: 17, borderRadius: 19, backgroundColor: palette.card, borderWidth: 1, borderColor: palette.border, gap: 5 }}>

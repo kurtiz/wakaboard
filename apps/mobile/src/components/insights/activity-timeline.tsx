@@ -18,6 +18,7 @@ import { runManualRefresh, type RefreshOutcome } from "../../haptic-actions";
 import { authClient, wakatimeConnectionAvailable } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
+import { RefreshIndicator } from "../ui/refresh-indicator";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 
 type Palette = ReturnType<typeof usePalette>;
@@ -207,7 +208,7 @@ export function ActivityTimeline() {
       contentInsetAdjustmentBehavior="automatic"
       onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined}
       scrollEventThrottle={16}
-      refreshControl={<RefreshControl refreshing={syncing || pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.primary} />}
+      refreshControl={<RefreshControl refreshing={syncing || pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.primary} colors={process.env.EXPO_OS === "android" ? ["transparent"] : undefined} progressBackgroundColor={process.env.EXPO_OS === "android" ? "transparent" : undefined} progressViewOffset={process.env.EXPO_OS === "android" ? -100 : undefined} />}
       style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 17, paddingHorizontal: 16, paddingTop: 12, paddingBottom: Math.max(36, insets.bottom + 24) }}
     >
@@ -249,6 +250,7 @@ export function ActivityTimeline() {
       <ScaleButton label="Open Analytics" onPress={() => router.navigate("/(tabs)/(insights)")} glass="regular" style={{ minHeight: 50, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 999, backgroundColor: palette.primary }}><Text style={{ color: palette.onPrimary, fontSize: 13, fontWeight: "800" }}>View Analytics</Text><CaretRightIcon color={palette.onPrimary} size={17} weight="bold" /></ScaleButton>
       <View style={{ alignItems: "center", gap: 5, paddingVertical: 8 }}><View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><LockKeyIcon color={palette.primary} size={14} weight="bold" /><Text style={{ color: palette.muted, fontSize: 11, fontWeight: "700" }}>Private & offline first</Text></View><Text style={{ color: palette.muted, fontSize: 10, textAlign: "center" }}>Daily totals and breakdowns are cached locally.</Text></View>
     </Animated.ScrollView>
+    <RefreshIndicator visible={pullRefreshing} color={palette.primary} />
     <DayPicker visible={pickerOpen} dates={dates} selectedKey={selectedKey} todayKey={todayKey} onSelect={selectDay} onClose={() => setPickerOpen(false)} palette={palette} />
   </AndroidPageFrame>;
 }

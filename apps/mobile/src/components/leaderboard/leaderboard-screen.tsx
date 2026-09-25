@@ -1,16 +1,19 @@
 import { Text } from "../ui/app-text";
 import { formatDuration } from "@wakaboard/core";
 import { router } from "expo-router";
+import { useState } from "react";
 import { GlobeIcon } from "phosphor-react-native/src/icons/Globe";
 import { LockKeyIcon } from "phosphor-react-native/src/icons/LockKey";
 import { MedalIcon } from "phosphor-react-native/src/icons/Medal";
-import { ActivityIndicator, Pressable, RefreshControl, View } from "react-native";
+import { Pressable, RefreshControl, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useLeaderboards } from "../../data/leaderboard-context";
 import type { Leader, LeaderboardScope } from "../../data/leaderboards";
 import { usePalette } from "../../theme";
 import { runManualRefresh } from "../../haptic-actions";
 import { ScaleButton } from "../ui/scale-button";
+import { LoadingIndicator } from "../ui/loading-indicator";
+import { RefreshIndicator } from "../ui/refresh-indicator";
 import { SegmentedPicker } from "../ui/segmented-picker";
 import { useLeaderboardScope } from "./leaderboard-scope";
 import { MemberAvatar } from "./member-avatar";
@@ -98,6 +101,7 @@ function RankingRow({ leader, scope, currentRank, palette }: { leader: Leader; s
 
 export function LeaderboardScreen() {
   const palette = usePalette();
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   const { offset, onScroll } = useAndroidPageScroll();
   const { boards, loading, error, refresh } = useLeaderboards();
   const { scope, setScope } = useLeaderboardScope();
@@ -107,15 +111,20 @@ export function LeaderboardScreen() {
   const updated = board?.updatedAt ? new Date(board.updatedAt) : null;
   const updatedLabel = updated && !Number.isNaN(updated.getTime()) ? `Updated ${updated.toLocaleDateString(undefined, { month: "short", day: "numeric" })}` : "WakaTime rankings";
 
+  function onPullRefresh() {
+    setPullRefreshing(true);
+    void runManualRefresh(async () => await refresh() ? "success" : "error", true).finally(() => setPullRefreshing(false));
+  }
+
   return <AndroidPageFrame title="Leaderboards" offset={offset}>
-    <Animated.ScrollView contentInsetAdjustmentBehavior="automatic" onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined} scrollEventThrottle={16} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void runManualRefresh(async () => await refresh() ? "success" : "error", true)} tintColor={palette.primary} />} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 17, paddingBottom: board ? 220 : 30, gap: 18 }}>
+    <Animated.ScrollView contentInsetAdjustmentBehavior="automatic" onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined} scrollEventThrottle={16} refreshControl={<RefreshControl refreshing={loading || pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.primary} colors={process.env.EXPO_OS === "android" ? ["transparent"] : undefined} progressBackgroundColor={process.env.EXPO_OS === "android" ? "transparent" : undefined} progressViewOffset={process.env.EXPO_OS === "android" ? -100 : undefined} />} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 17, paddingBottom: board ? 220 : 30, gap: 18 }}>
       <AndroidLargeTitle title="Leaderboards" offset={offset} />
       <ScopeSelector scope={scope} countryCode={countryCode} onChange={setScope} palette={palette} />
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <View style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: palette.homeSurface }}><Text style={{ color: palette.muted, fontSize: 11, fontWeight: "700" }}>Last 7 days</Text></View>
         <Text style={{ color: palette.muted, fontSize: 11 }}>All languages</Text>
       </View>
-      {loading && !board ? <ActivityIndicator color={palette.primary} style={{ paddingVertical: 36 }} /> : null}
+      {loading && !board ? <LoadingIndicator color={palette.primary} style={{ paddingVertical: 36 }} /> : null}
       {error && !board ? <View style={{ gap: 12, padding: 18, borderRadius: 22, backgroundColor: palette.homeSurface }}>
         <Text accessibilityRole="header" style={{ color: palette.text, fontSize: 18, fontWeight: "800" }}>Rankings unavailable</Text>
         <Text accessibilityRole="alert" style={{ color: palette.muted, fontSize: 13, lineHeight: 19 }}>{error}</Text>
@@ -146,6 +155,7 @@ export function LeaderboardScreen() {
         </View>
       </> : null}
     </Animated.ScrollView>
+    <RefreshIndicator visible={pullRefreshing} color={palette.primary} />
     <StandingOverlay board={board} scope={scope} countryCode={countryCode} />
   </AndroidPageFrame>;
 }
