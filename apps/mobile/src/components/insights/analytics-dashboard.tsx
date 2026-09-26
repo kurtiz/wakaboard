@@ -7,12 +7,12 @@ import { ShareNetworkIcon } from "phosphor-react-native/src/icons/ShareNetwork";
 import { useMemo, useState, type ReactNode } from "react";
 import { Alert, Share, View, type StyleProp, type ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
-import Svg, { Circle } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboard } from "../../data/dashboard-context";
 import { HapticPreset } from "../../constants/haptics";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
+import { AnimatedHeightBar, AnimatedProgressBar, AnimatedProgressRing } from "../ui/animated-progress";
 import { SegmentedPicker } from "../ui/segmented-picker";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 import { buildAnalytics, type AnalyticsRange, type CadenceBucket } from "./analytics-data";
@@ -28,13 +28,9 @@ function Surface({ children, palette, style }: { children: ReactNode; palette: P
 }
 
 function ConsistencyRing({ value, palette }: { value: number; palette: Palette }) {
-  const circumference = 2 * Math.PI * 21;
   return (
     <View style={{ width: 62, height: 62, alignItems: "center", justifyContent: "center" }}>
-      <Svg width={62} height={62} viewBox="0 0 62 62" accessibilityLabel={`${Math.round(value * 100)} percent consistency`}>
-        <Circle cx="31" cy="31" r="21" fill="none" stroke={palette.homeHeroTrack} strokeWidth="5" />
-        <Circle cx="31" cy="31" r="21" fill="none" stroke={palette.homeAmber} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${circumference * value} ${circumference}`} transform="rotate(-90 31 31)" />
-      </Svg>
+      <AnimatedProgressRing value={value} size={62} radius={21} strokeWidth={5} trackColor={palette.homeHeroTrack} color={palette.homeAmber} label={`${Math.round(value * 100)} percent consistency`} />
       <Text style={{ position: "absolute", color: palette.homeHeroText, fontSize: 13, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{Math.round(value * 100)}%</Text>
     </View>
   );
@@ -76,7 +72,7 @@ function DigestCard({ data, range, palette }: { data: ReturnType<typeof buildAna
 function CadenceBar({ bucket, height, selected, palette, onPress }: { bucket: CadenceBucket; height: number; selected: boolean; palette: Palette; onPress: () => void }) {
   return (
     <ScaleButton label={`${bucket.dateLabel}, ${formatDuration(bucket.seconds)}`} onPress={onPress} wrapperStyle={{ flex: 1 }} style={{ height: 132, justifyContent: "flex-end", alignItems: "center", paddingHorizontal: 2 }}>
-      <View style={{ width: "100%", maxWidth: 20, height, minHeight: 6, borderRadius: 6, backgroundColor: selected ? palette.homeAmber : bucket.seconds > 0 ? palette.primary : palette.homeSubtle }} />
+      <AnimatedHeightBar height={height} color={selected ? palette.homeAmber : bucket.seconds > 0 ? palette.primary : palette.homeSubtle} style={{ width: "100%", maxWidth: 20, minHeight: 6, borderRadius: 6 }} />
     </ScaleButton>
   );
 }
@@ -96,7 +92,7 @@ function CadenceCard({ data, selectedIndex, onSelect, palette }: { data: ReturnT
         <Text selectable style={{ color: palette.primary, fontSize: 12, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{formatDuration(selected?.seconds ?? 0)}</Text>
       </View>
       <View style={{ height: 134, flexDirection: "row", alignItems: "flex-end", gap: 3 }}>
-        {data.buckets.map((bucket, index) => <CadenceBar key={bucket.key} bucket={bucket} height={Math.max(6, Math.round(bucket.seconds / max * 122))} selected={index === selectedIndex} palette={palette} onPress={() => onSelect(index)} />)}
+        {data.buckets.map((bucket, index) => <CadenceBar key={index} bucket={bucket} height={Math.max(6, Math.round(bucket.seconds / max * 122))} selected={index === selectedIndex} palette={palette} onPress={() => onSelect(index)} />)}
       </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 4 }}>
         {data.buckets.map((bucket, index) => <Text key={bucket.key} numberOfLines={1} style={{ flex: 1, textAlign: "center", color: index === selectedIndex ? palette.primary : palette.muted, fontSize: data.buckets.length > 7 ? 9 : 10, fontWeight: index === selectedIndex ? "800" : "500" }}>{data.buckets.length > 7 && index % 2 === 1 && index !== selectedIndex ? "" : bucket.label}</Text>)}
@@ -144,7 +140,7 @@ function BreakdownCard({ title, rows, palette }: { title: string; rows: Breakdow
               <Text selectable style={{ color: palette.muted, fontSize: 11, fontVariant: ["tabular-nums"] }}>{formatDuration(row.seconds)}</Text>
               <Text style={{ color: palette.primary, fontSize: 11, fontWeight: "800", width: 37, textAlign: "right" }}>{Math.round(share * 100)}%</Text>
             </View>
-            <View style={{ height: 5, borderRadius: 4, backgroundColor: palette.homeSubtle }}><View style={{ height: 5, width: `${Math.round(share * 100)}%`, borderRadius: 4, backgroundColor: colors[index] }} /></View>
+            <AnimatedProgressBar value={share} color={colors[index]} height={5} style={{ backgroundColor: palette.homeSubtle }} />
           </View>;
         })}
       </>}

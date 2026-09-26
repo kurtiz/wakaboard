@@ -6,13 +6,13 @@ import { ChartLineUpIcon } from "phosphor-react-native/src/icons/ChartLineUp";
 import { FireIcon } from "phosphor-react-native/src/icons/Fire";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Pressable, RefreshControl, View } from "react-native";
-import Svg, { Circle } from "react-native-svg";
 import Animated from "react-native-reanimated";
 import { OnboardingButton } from "../onboarding/onboarding-button";
 import { ChevronLink } from "../ui/chevron-link";
 import { LoadingIndicator } from "../ui/loading-indicator";
 import { RefreshIndicator } from "../ui/refresh-indicator";
 import { BrandMark } from "../ui/brand-mark";
+import { AnimatedHeightBar, AnimatedProgressBar, AnimatedProgressRing } from "../ui/animated-progress";
 import { useDashboard } from "../../data/dashboard-context";
 import { runManualRefresh, type RefreshOutcome } from "../../haptic-actions";
 import { useLeaderboards } from "../../data/leaderboard-context";
@@ -100,13 +100,9 @@ function HomeHeader({ today, name, profile, syncing, sample, hasActivity, palett
 }
 
 function GoalRing({ progress, goalSeconds, palette }: { progress: number; goalSeconds: number; palette: Palette }) {
-  const circumference = 2 * Math.PI * 39;
   return (
     <View style={{ width: 100, height: 100, alignItems: "center", justifyContent: "center" }}>
-      <Svg width={100} height={100} viewBox="0 0 100 100" accessibilityLabel={`${Math.round(progress * 100)} percent of daily goal`}>
-        <Circle cx="50" cy="50" r="39" stroke={palette.homeHeroTrack} strokeWidth="8" fill="none" />
-        <Circle cx="50" cy="50" r="39" stroke={palette.homeAmber} strokeWidth="8" strokeLinecap="round" strokeDasharray={`${circumference * progress} ${circumference}`} transform="rotate(-90 50 50)" fill="none" />
-      </Svg>
+      <AnimatedProgressRing value={progress} size={100} radius={39} strokeWidth={8} trackColor={palette.homeHeroTrack} color={palette.homeAmber} label={`${Math.round(progress * 100)} percent of daily goal`} />
       <View style={{ position: "absolute", alignItems: "center" }}>
         <Text style={{ color: palette.homeHeroText, fontSize: 19, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{Math.round(progress * 100)}%</Text>
         <Text style={{ color: palette.homeHeroMuted, fontSize: 9, fontWeight: "700" }}>OF {formatDuration(goalSeconds).toUpperCase()}</Text>
@@ -137,7 +133,7 @@ function HeroCard({ total, goalSeconds, progress, streak, dailyAverage, palette 
         </View>
       ) : (
         <View style={{ gap: 9 }}>
-          <View style={{ height: 6, backgroundColor: palette.homeHeroTrack, borderRadius: 4, overflow: "hidden" }}><View style={{ width: `${Math.round(progress * 100)}%`, height: 6, backgroundColor: palette.homeAmber, borderRadius: 4 }} /></View>
+          <AnimatedProgressBar value={progress} color={palette.homeAmber} height={6} style={{ backgroundColor: palette.homeHeroTrack }} />
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ color: palette.homeHeroMuted, fontSize: 11 }}>Active day average {formatDuration(dailyAverage)}</Text><ChevronLink href="/(tabs)/(insights)" label="Details" color={palette.homeHeroText} fontSize={11} /></View>
         </View>
       )}
@@ -173,7 +169,7 @@ function WeeklyCard({ days, total, palette }: { days: Day[]; total: number; pale
           const height = Math.max(8, Math.round((day.seconds / max) * 91));
           return <View key={day.key} style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", gap: 7 }}>
             {!android ? <Text style={{ color: today ? palette.primary : palette.muted, fontSize: 10 }}>{day.seconds ? `${(day.seconds / 3600).toFixed(1)}h` : "–"}</Text> : null}
-            <View accessibilityLabel={`${day.label}: ${formatDuration(day.seconds)}`} style={{ width: "100%", maxWidth: 34, height, backgroundColor: color, borderRadius: 999 }} />
+            <AnimatedHeightBar height={height} color={color} accessibilityLabel={`${day.label}: ${formatDuration(day.seconds)}`} style={{ width: "100%", maxWidth: 34, borderRadius: 999 }} />
             <Text style={{ color: today ? palette.primary : palette.muted, fontSize: 11, fontWeight: today ? "800" : "600" }}>{day.label}</Text>
           </View>;
         })}
@@ -199,7 +195,7 @@ function BreakdownCard({ title, kicker, rows, palette }: { title: string; kicker
             <Text selectable style={{ color: palette.muted, fontSize: 11, fontVariant: ["tabular-nums"] }}>{formatDuration(row.seconds)}</Text>
             <Text style={{ color: palette.primary, fontSize: 11, fontWeight: "800", width: 34, textAlign: "right" }}>{Math.round(share * 100)}%</Text>
           </View>
-          <View style={{ height: 6, borderRadius: 4, backgroundColor: palette.homeSubtle }}><View style={{ height: 6, width: `${Math.round(share * 100)}%`, borderRadius: 4, backgroundColor: color }} /></View>
+          <AnimatedProgressBar value={share} color={color} height={6} style={{ backgroundColor: palette.homeSubtle }} />
         </View>;
       })}
     </SurfaceCard>

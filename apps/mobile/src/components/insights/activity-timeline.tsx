@@ -9,8 +9,7 @@ import { LockKeyIcon } from "phosphor-react-native/src/icons/LockKey";
 import { ShareNetworkIcon } from "phosphor-react-native/src/icons/ShareNetwork";
 import { useMemo, useRef, useState } from "react";
 import { Alert, FlatList, Modal, Pressable, RefreshControl, ScrollView, Share, View } from "react-native";
-import Animated from "react-native-reanimated";
-import Svg, { Circle } from "react-native-svg";
+import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboard } from "../../data/dashboard-context";
 import { HapticPreset } from "../../constants/haptics";
@@ -19,6 +18,7 @@ import { authClient, wakatimeConnectionAvailable } from "../../data/wakatime-cli
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
 import { RefreshIndicator } from "../ui/refresh-indicator";
+import { AnimatedProgressBar, AnimatedProgressRing } from "../ui/animated-progress";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 
 type Palette = ReturnType<typeof usePalette>;
@@ -39,12 +39,8 @@ function dateLabel(key: string, todayKey: string): string {
 }
 
 function ProgressRing({ progress, palette }: { progress: number; palette: Palette }) {
-  const circumference = 2 * Math.PI * 21;
   return <View style={{ width: 62, height: 62, alignItems: "center", justifyContent: "center" }}>
-    <Svg width={62} height={62} viewBox="0 0 62 62" accessibilityLabel={`${Math.round(progress * 100)} percent of daily goal`}>
-      <Circle cx="31" cy="31" r="21" fill="none" stroke={palette.homeHeroTrack} strokeWidth="5" />
-      <Circle cx="31" cy="31" r="21" fill="none" stroke={palette.homeAmber} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${circumference * progress} ${circumference}`} transform="rotate(-90 31 31)" />
-    </Svg>
+    <AnimatedProgressRing value={progress} size={62} radius={21} strokeWidth={5} trackColor={palette.homeHeroTrack} color={palette.homeAmber} label={`${Math.round(progress * 100)} percent of daily goal`} />
     <Text style={{ position: "absolute", color: palette.homeHeroText, fontSize: 12, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{Math.round(progress * 100)}%</Text>
   </View>;
 }
@@ -123,7 +119,7 @@ function BreakdownGroup({ title, rows, palette }: { title: string; rows: Breakdo
         <Text numberOfLines={1} style={{ color: palette.text, flex: 1, fontSize: 11, fontWeight: "600" }}>{row.name}</Text>
         <Text style={{ color: palette.primary, fontSize: 10, fontWeight: "800" }}>{Math.round(row.seconds / total * 100)}%</Text>
       </View>
-      <View style={{ height: 4, borderRadius: 2, backgroundColor: palette.homeSubtle }}><View style={{ width: `${Math.round(row.seconds / total * 100)}%`, height: 4, borderRadius: 2, backgroundColor: palette.primary }} /></View>
+      <AnimatedProgressBar value={row.seconds / total} color={palette.primary} height={4} style={{ backgroundColor: palette.homeSubtle }} />
     </View>) : <Text style={{ color: palette.muted, fontSize: 11 }}>No data</Text>}
   </View>;
 }
@@ -141,7 +137,7 @@ function ProjectTimeline({ projects, totalSeconds, palette }: { projects: Breakd
             <Text selectable style={{ color: palette.primary, fontSize: 13, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{formatDuration(project.seconds)}</Text>
           </View>
           <View style={{ gap: 6 }}>
-            <View style={{ height: 6, borderRadius: 4, backgroundColor: palette.homeSubtle }}><View style={{ width: `${Math.min(100, Math.round(share * 100))}%`, height: 6, borderRadius: 4, backgroundColor: index === 1 ? palette.homeAmber : palette.primary }} /></View>
+            <AnimatedProgressBar value={share} color={index === 1 ? palette.homeAmber : palette.primary} height={6} style={{ backgroundColor: palette.homeSubtle }} />
             <Text style={{ color: palette.muted, fontSize: 11 }}>{Math.round(share * 100)}% of this day&apos;s coding time</Text>
           </View>
         </View>
@@ -152,6 +148,7 @@ function ProjectTimeline({ projects, totalSeconds, palette }: { projects: Breakd
 
 export function ActivityTimeline() {
   const palette = usePalette();
+  const reducedMotion = useReducedMotion();
   const { offset, onScroll } = useAndroidPageScroll();
   const insets = useSafeAreaInsets();
   const { summaries, goalSeconds, syncWakaTime, refresh } = useDashboard();
@@ -238,7 +235,9 @@ export function ActivityTimeline() {
           {projects.map((project) => <ScaleButton key={project.name} label={`Show ${project.name} activity`} selected={projectFilter === project.name} onPress={() => selectProject(project.name)} style={{ minHeight: 38, maxWidth: 200, paddingHorizontal: 14, borderRadius: 999, alignItems: "center", justifyContent: "center", backgroundColor: projectFilter === project.name ? palette.primary : palette.homeSubtle }}><Text numberOfLines={1} style={{ color: projectFilter === project.name ? palette.onPrimary : palette.text, fontSize: 11, fontWeight: "700" }}>{project.name} · {formatDuration(project.seconds)}</Text></ScaleButton>)}
         </ScrollView>
         <View style={{ gap: 4 }}><Text accessibilityRole="header" style={{ color: palette.text, fontSize: 19, fontWeight: "800" }}>Project activity</Text><Text style={{ color: palette.muted, fontSize: 11 }}>By coding time on this day</Text></View>
-        <ProjectTimeline projects={visibleProjects} totalSeconds={summary.totalSeconds} palette={palette} />
+        <Animated.View key={`${selectedKey}-${projectFilter ?? "all"}`} entering={reducedMotion ? undefined : FadeIn.duration(180)}>
+          <ProjectTimeline projects={visibleProjects} totalSeconds={summary.totalSeconds} palette={palette} />
+        </Animated.View>
         <View style={{ borderRadius: 23, padding: 17, gap: 15, backgroundColor: palette.card }}>
           <Text accessibilityRole="header" style={{ color: palette.text, fontSize: 15, fontWeight: "800" }}>Tools used across the day</Text>
           <View style={{ flexDirection: "row", gap: 17 }}>
