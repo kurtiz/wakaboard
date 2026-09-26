@@ -238,7 +238,7 @@ export function ActivityTimeline() {
         </ScaleButton>
         <ScaleButton label="Next day" disabled={selectedKey >= todayKey} onPress={() => selectDay(adjacentDay(selectedKey, 1))} style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeSubtle }}><CaretRightIcon color={palette.text} size={17} weight="bold" /></ScaleButton>
         <View style={{ flex: 1 }} />
-        <ScaleButton label="Share this day's activity" disabled={!summary || summary.source !== "wakatime"} onPress={shareDay} glass="clear" style={{ width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeSubtle }}><ShareNetworkIcon color={palette.primary} size={18} weight="bold" /></ScaleButton>
+        <ScaleButton label="Share this day's activity" disabled={!summary || summary.source !== "wakatime"} onPress={shareDay} glass="clear" style={{ width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeSubtle }}><ShareNetworkIcon color={palette.primary} size={18} weight="duotone" /></ScaleButton>
       </View>
       {summary?.source === "sample" && <Text style={{ color: palette.primary, fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>SAMPLE ACTIVITY</Text>}
       <DayHero summary={summary} goalSeconds={goalSeconds} palette={palette} />

@@ -228,7 +228,7 @@ function WeeklyInsight({ days, palette }: { days: Day[]; palette: Palette }) {
   return (
     <Animated.View style={[press.style, { width: "100%" }]}>
       <Pressable accessibilityRole="button" accessibilityLabel={`Best coding day: ${weekday}, ${formatDuration(peak.seconds)}. See weekly insights`} onPress={() => router.push("/(tabs)/(insights)")} onPressIn={press.onPressIn} onPressOut={press.onPressOut} style={({ pressed }) => ({ width: "100%", minHeight: 78, flexDirection: "row", alignItems: "center", gap: 13, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 24, backgroundColor: palette.homeSurface, opacity: pressed ? 0.76 : 1 })}>
-        <View style={{ width: 42, height: 42, borderRadius: 16, backgroundColor: palette.homeMintSurface, alignItems: "center", justifyContent: "center" }}><ChartLineUpIcon color={palette.primary} size={22} weight="bold" /></View>
+        <View style={{ width: 42, height: 42, borderRadius: 16, alignItems: "center", justifyContent: "center" }}><ChartLineUpIcon color={palette.primary} size={32} weight="duotone" /></View>
         <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
           <Text numberOfLines={1} style={{ color: palette.text, fontSize: 15, fontWeight: "800" }}>Best coding day</Text>
           <Text numberOfLines={1} style={{ color: palette.muted, fontSize: 12 }}>{weekday} · {formatDuration(peak.seconds)} of coding</Text>

@@ -82,7 +82,7 @@ function CadenceCard({ data, selectedIndex, onSelect, palette }: { data: ReturnT
   return (
     <Surface palette={palette}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}><ChartLineUpIcon color={palette.primary} size={19} weight="bold" /><Text accessibilityRole="header" style={{ color: palette.text, fontSize: 18, fontWeight: "800" }}>Coding cadence</Text></View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}><ChartLineUpIcon color={palette.primary} size={19} weight="duotone" /><Text accessibilityRole="header" style={{ color: palette.text, fontSize: 18, fontWeight: "800" }}>Coding cadence</Text></View>
         <Text style={{ color: palette.muted, fontSize: 11 }}>Hours / period</Text>
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, padding: 11, borderRadius: 13, backgroundColor: palette.homeSubtle }}>
@@ -110,7 +110,7 @@ function HighlightCard({ data, palette }: { data: ReturnType<typeof buildAnalyti
   const change = data.hasPrevious && data.previousTotal > 0 ? Math.round((data.total - data.previousTotal) / data.previousTotal * 100) : null;
   return (
     <Surface palette={palette} style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-      <View style={{ width: 58, height: 58, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeMintSurface }}><ChartLineUpIcon color={palette.primary} size={26} weight="bold" /></View>
+      <View style={{ width: 58, height: 58, borderRadius: 18, alignItems: "center", justifyContent: "center", }}><ChartLineUpIcon color={palette.primary} size={36} weight="duotone" /></View>
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={{ color: palette.primary, fontSize: 10, fontWeight: "800", letterSpacing: 1, textTransform: "uppercase" }}>Your strongest day</Text>
         <Text style={{ color: palette.text, fontSize: 17, fontWeight: "800" }}>{best ? new Date(`${best.date}T12:00:00`).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" }) : "No activity yet"}</Text>
@@ -190,9 +190,9 @@ export function AnalyticsDashboard() {
         <CaretRightIcon color={palette.homeHeroText} size={20} weight="bold" />
       </ScaleButton>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 15, borderRadius: 22, backgroundColor: palette.homeSurface }}>
-        <View style={{ width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeMintSurface }}><ChartLineUpIcon color={palette.primary} size={20} weight="bold" /></View>
+        <View style={{ width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", }}><ChartLineUpIcon color={palette.primary} size={30} weight="duotone" /></View>
         <View style={{ flex: 1, gap: 3 }}><Text style={{ color: palette.text, fontSize: 14, fontWeight: "800" }}>Your coding report</Text><Text style={{ color: palette.muted, fontSize: 11 }}>Share the summary for this range</Text></View>
-        <ScaleButton label="Share coding report" onPress={shareReport} glass="clear" style={{ width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: palette.card }}><ShareNetworkIcon color={palette.primary} size={20} weight="bold" /></ScaleButton>
+        <ScaleButton label="Share coding report" onPress={shareReport} glass="clear" style={{ width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: palette.card }}><ShareNetworkIcon color={palette.primary} size={20} weight="duotone" /></ScaleButton>
       </View>
       <ScaleButton label="Open activity timeline" onPress={() => router.push("/activity")} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, padding: 16, minHeight: 68, borderRadius: 22, backgroundColor: palette.homeSurface }}>
         <View style={{ flex: 1, gap: 3 }}><Text style={{ color: palette.text, fontSize: 15, fontWeight: "800" }}>Activity timeline</Text><Text style={{ color: palette.muted, fontSize: 11 }}>Explore your saved coding days</Text></View>
