@@ -1,11 +1,9 @@
 {
   "expo": {
     "scheme": "wakaboard",
+    "platforms": ["ios", "android"],
     "userInterfaceStyle": "automatic",
     "orientation": "default",
-    "web": {
-      "output": "static"
-    },
     "plugins": [
       "expo-router",
       "expo-status-bar",

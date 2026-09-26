@@ -6,7 +6,6 @@
     "start": "pnpm --filter @wakaboard/mobile start",
     "android": "pnpm --filter @wakaboard/mobile android",
     "ios": "pnpm --filter @wakaboard/mobile ios",
-    "web": "pnpm --filter @wakaboard/mobile web",
     "lint": "pnpm --filter @wakaboard/mobile lint",
     "typecheck": "pnpm -r --if-present typecheck"
   }

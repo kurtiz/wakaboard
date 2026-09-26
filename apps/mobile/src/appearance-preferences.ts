@@ -29,12 +29,12 @@ function applyAppearance() {
   }
 
   // Clear an earlier explicit override before reading the device preference.
-  if (themeMode === "system" && process.env.EXPO_OS !== "web") {
+  if (themeMode === "system") {
     Appearance.setColorScheme("unspecified");
   }
   const scheme = themeMode === "system" ? deviceTheme() : themeMode;
   Uniwind.setTheme(`${accentChoice}-${scheme}`);
-  if (themeMode !== "system" && process.env.EXPO_OS !== "web") {
+  if (themeMode !== "system") {
     Appearance.setColorScheme(scheme);
   }
 }
@@ -42,16 +42,14 @@ function applyAppearance() {
 export function initializeAppearance() {
   if (initialized) return;
   initialized = true;
-  if (process.env.EXPO_OS !== "web") {
-    Appearance.addChangeListener(({ colorScheme }) => {
-      if (themeMode !== "system" || accentChoice === "pine") return;
-      const next = colorScheme === "dark" ? "dark" : "light";
-      const theme = `${accentChoice}-${next}` as const;
-      if (Uniwind.currentTheme !== theme) {
-        Uniwind.setTheme(theme);
-      }
-    });
-  }
+  Appearance.addChangeListener(({ colorScheme }) => {
+    if (themeMode !== "system" || accentChoice === "pine") return;
+    const next = colorScheme === "dark" ? "dark" : "light";
+    const theme = `${accentChoice}-${next}` as const;
+    if (Uniwind.currentTheme !== theme) {
+      Uniwind.setTheme(theme);
+    }
+  });
   applyAppearance();
 }
 

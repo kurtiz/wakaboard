@@ -156,12 +156,6 @@ export default function SettingsScreen() {
   }
 
   function confirmClearOffline() {
-    if (process.env.EXPO_OS === "web") {
-      if (globalThis.confirm("Remove downloaded WakaTime activity from this device? You can sync it again while connected.")) {
-        void clearOfflineActivity();
-      }
-      return;
-    }
     Alert.alert(
       "Remove saved activity?",
       "Downloaded WakaTime activity will be removed from this device. You can sync it again while connected.",
