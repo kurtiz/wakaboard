@@ -1,7 +1,7 @@
 import { Text } from "../components/ui/app-text";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Linking, Pressable, ScrollView, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthDoodleBackground } from "../components/auth/auth-doodle-background";
 import { WakaTimeMark } from "../components/auth/wakatime-mark";
@@ -63,9 +63,10 @@ export default function AuthScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.background }}>
+    <KeyboardAvoidingView behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: palette.background }}>
       <ScrollView
         style={{ flex: 1, backgroundColor: "transparent" }}
+        keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: insets.top + 28, paddingBottom: insets.bottom + 28 }}
       >
@@ -128,6 +129,6 @@ export default function AuthScreen() {
           ) : null}
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

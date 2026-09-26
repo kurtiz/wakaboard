@@ -1,6 +1,7 @@
 import { Host, Slider } from "@expo/ui";
 import { formatDuration } from "@wakaboard/core";
 import { Image } from "expo-image";
+import Constants from "expo-constants";
 import { router } from "expo-router";
 import { ArrowsClockwiseIcon } from "phosphor-react-native/src/icons/ArrowsClockwise";
 import { CheckIcon } from "phosphor-react-native/src/icons/Check";
@@ -9,6 +10,7 @@ import { PaletteIcon } from "phosphor-react-native/src/icons/Palette";
 import { ShieldCheckIcon } from "phosphor-react-native/src/icons/ShieldCheck";
 import { TargetIcon } from "phosphor-react-native/src/icons/Target";
 import { TrashIcon } from "phosphor-react-native/src/icons/Trash";
+import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { MinusIcon } from "phosphor-react-native/src/icons/Minus";
 import { PlusIcon } from "phosphor-react-native/src/icons/Plus";
 import { useEffect, useState } from "react";
@@ -62,6 +64,7 @@ export default function SettingsScreen() {
   const latestSavedLabel = latestSaved ? new Date(`${latestSaved}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : null;
   const profileName = currentProfile?.name || accountName || accountEmail || "WakaTime";
   const initials = profileName.trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("");
+  const appBuild = process.env.EXPO_OS === "ios" ? Constants.expoConfig?.ios?.buildNumber : Constants.expoConfig?.android?.versionCode;
 
   useEffect(() => {
     if (wakatimeConnectionAvailable) {
@@ -318,7 +321,12 @@ export default function SettingsScreen() {
 
       <View style={{ backgroundColor: palette.card, borderColor: palette.border, borderWidth: 1, borderRadius: 24, borderCurve: "continuous", padding: 18, gap: 12 }}>
         <AppText style={{ color: palette.primary, fontSize: 17, fontWeight: "800" }}>WakaBoard</AppText>
+        <View style={{ backgroundColor: palette.homeSurface, borderRadius: 11, paddingHorizontal: 12, minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><AppText style={{ color: palette.muted, fontSize: 12 }}>App version</AppText><AppText selectable style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>{Constants.expoConfig?.version ?? "—"}{appBuild != null ? ` (${appBuild})` : ""}</AppText></View>
         <View style={{ backgroundColor: palette.homeSurface, borderRadius: 11, paddingHorizontal: 12, minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><AppText style={{ color: palette.muted, fontSize: 12 }}>Activity source</AppText><AppText style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>WakaTime</AppText></View>
+        <Pressable accessibilityRole="link" accessibilityLabel="Open source credits" onPress={() => router.push("/credits")} style={({ pressed }) => ({ minHeight: 48, paddingHorizontal: 12, borderRadius: 11, backgroundColor: palette.homeSurface, flexDirection: "row", alignItems: "center", opacity: pressed ? 0.7 : 1 })}>
+          <AppText style={{ flex: 1, color: palette.text, fontSize: 13, fontWeight: "700" }}>Open source credits</AppText>
+          <CaretRightIcon size={16} color={palette.muted} />
+        </Pressable>
         {connectionMode && <>
           <ScaleButton label="Disconnect WakaTime" disabled={accountBusy || syncing} onPress={() => setSignOutAlertVisible(true)} glass="clear" style={{ minHeight: 44, borderRadius: 22, backgroundColor: palette.homeSubtle, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "800" }}>Disconnect</AppText></ScaleButton>
           <SignOutAlert visible={signOutAlertVisible} onCancel={() => setSignOutAlertVisible(false)} onConfirm={() => { setSignOutAlertVisible(false); void signOut(); }} />

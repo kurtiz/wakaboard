@@ -6,7 +6,9 @@
     "start": "pnpm --filter @wakaboard/mobile start",
     "android": "pnpm --filter @wakaboard/mobile android",
     "ios": "pnpm --filter @wakaboard/mobile ios",
-    "lint": "pnpm --filter @wakaboard/mobile lint",
+    "lint": "node scripts/check-mobile-version.mjs && pnpm credits:check && pnpm --filter @wakaboard/mobile lint",
+    "credits:generate": "node scripts/generate-mobile-credits.mjs",
+    "credits:check": "node scripts/generate-mobile-credits.mjs --check",
     "typecheck": "pnpm -r --if-present typecheck",
     "worker:template:sync": "node scripts/sync-worker-template.mjs",
     "worker:template:check": "node scripts/sync-worker-template.mjs --check"

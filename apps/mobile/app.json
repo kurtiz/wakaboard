@@ -31,8 +31,10 @@
     ],
     "name": "WakaBoard",
     "slug": "wakaboard",
+    "version": "1.0.0",
     "android": {
       "package": "com.kompyler.wakaboard",
+      "versionCode": 1,
       "icon": "./assets/icons/android-legacy.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/android-foreground.png",
@@ -42,6 +44,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.kompyler.wakaboard",
+      "buildNumber": "1",
       "icon": "./assets/icons/WakaBoard.icon"
     },
     "extra": {

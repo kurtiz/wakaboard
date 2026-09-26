@@ -14,6 +14,7 @@ the mobile app caches downloaded activity separately in SQLite.
 ## Contents
 
 - [Features](#features)
+- [Versioning and release history](#versioning-and-release-history)
 - [Repository layout](#repository-layout)
 - [Prerequisites](#prerequisites)
 - [Quick start](#quick-start)
@@ -36,6 +37,11 @@ the mobile app caches downloaded activity separately in SQLite.
 - Change appearance and sync preferences, sign out, and remove downloaded activity in Settings.
 
 Some screens and share features are still being refined. Please report reproducible problems in an issue.
+
+## Versioning and release history
+
+The app version and native build numbers are tracked in `apps/mobile/app.json`. See the [versioning policy](docs/versioning.md) and [mobile changelog](CHANGELOG.md) for the release process and shipped features.
+Settings includes credits for the mobile app's direct and supporting open source packages and bundled fonts. Run `pnpm credits:generate` after changing mobile dependencies.
 
 ## Repository layout
 
