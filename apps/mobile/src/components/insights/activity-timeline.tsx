@@ -19,6 +19,7 @@ import { authClient, wakatimeConnectionAvailable } from "../../data/wakatime-cli
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
 import { RefreshIndicator } from "../ui/refresh-indicator";
+import { usePullRefreshFeedback } from "../ui/use-pull-refresh-feedback";
 import { AnimatedProgressBar, AnimatedProgressRing } from "../ui/animated-progress";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 
@@ -172,6 +173,7 @@ export function ActivityTimeline() {
   const insets = useSafeAreaInsets();
   const { summaries, goalSeconds, syncWakaTime, refresh } = useDashboard();
   const [pullRefreshing, setPullRefreshing] = useState(false);
+  const pull = usePullRefreshFeedback(offset, pullRefreshing);
   const todayKey = useMemo(() => localDateKey(new Date()), []);
   const [selectedKey, setSelectedKey] = useState(todayKey);
   const [projectFilter, setProjectFilter] = useState<string | null>(null);
@@ -216,8 +218,13 @@ export function ActivityTimeline() {
     <Animated.ScrollView
       contentInsetAdjustmentBehavior="automatic"
       onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined}
+      onScrollBeginDrag={pull.onScrollBeginDrag}
+      onTouchStart={pull.onTouchStart}
+      onTouchMove={pull.onTouchMove}
+      onTouchEnd={pull.onTouchEnd}
+      onTouchCancel={pull.onTouchCancel}
       scrollEventThrottle={16}
-      refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.primary} colors={process.env.EXPO_OS === "android" ? ["transparent"] : undefined} progressBackgroundColor={process.env.EXPO_OS === "android" ? "transparent" : undefined} progressViewOffset={process.env.EXPO_OS === "android" ? -100 : undefined} />}
+      refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.primary} colors={process.env.EXPO_OS === "android" ? [pullRefreshing ? "transparent" : palette.primary] : undefined} progressBackgroundColor={process.env.EXPO_OS === "android" ? pullRefreshing ? "transparent" : palette.card : undefined} progressViewOffset={process.env.EXPO_OS === "android" ? pullRefreshing ? -100 : insets.top + 8 : undefined} />}
       style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 17, paddingHorizontal: 16, paddingTop: 12, paddingBottom: Math.max(36, insets.bottom + 24) }}
     >
@@ -255,7 +262,7 @@ export function ActivityTimeline() {
       <ScaleButton label="Open Analytics" onPress={() => router.navigate("/(tabs)/(insights)")} glass="regular" style={{ minHeight: 50, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 999, backgroundColor: palette.primary }}><Text style={{ color: palette.onPrimary, fontSize: 13, fontWeight: "800" }}>View Analytics</Text><CaretRightIcon color={palette.onPrimary} size={17} weight="bold" /></ScaleButton>
       <View style={{ alignItems: "center", gap: 5, paddingVertical: 8 }}><View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><LockKeyIcon color={palette.primary} size={14} weight="bold" /><Text style={{ color: palette.muted, fontSize: 11, fontWeight: "700" }}>Private & offline first</Text></View><Text style={{ color: palette.muted, fontSize: 10, textAlign: "center" }}>Daily totals and breakdowns are cached locally.</Text></View>
     </Animated.ScrollView>
-    <RefreshIndicator visible={pullRefreshing} color={palette.primary} />
+    <RefreshIndicator pulling={pull.pulling} refreshing={pullRefreshing} progress={pull.progress} color={palette.primary} />
     <DayPicker visible={pickerOpen} dates={dates} selectedKey={selectedKey} todayKey={todayKey} onSelect={selectDay} onClose={() => setPickerOpen(false)} palette={palette} />
   </AndroidPageFrame>;
 }

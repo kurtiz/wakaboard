@@ -2,6 +2,7 @@ import { formatDuration } from "@wakaboard/core";
 import { Text, View, type TextStyle, type ViewStyle } from "react-native";
 import type { CodingWeekReport } from "./coding-week-data";
 import { ShareBrand } from "./share-brand";
+import { DashedLine } from "../ui/dashed-line";
 
 export type CodingWeekStyle = "editorial" | "night" | "rhythm";
 
@@ -83,7 +84,7 @@ function WeekBars({ report, x, y, w, h, scale, dark = false, compact = false }: 
   return <View style={{ position: "absolute", left: x * scale, top: y * scale, width: w * scale, height: h * scale }}>
     {([1, 0.5] as const).map((fraction) => <View key={fraction} style={{ position: "absolute", top: (plotTop + (1 - fraction) * plotHeight) * scale, left: 0, right: 0, flexDirection: "row", alignItems: "flex-start" }}>
       <Text numberOfLines={1} adjustsFontSizeToFit style={{ width: (labelWidth - 5) * scale, marginTop: -5 * scale, textAlign: "right", color: dark ? "#B9D9C5" : colors.muted, fontFamily: "Outfit", fontWeight: "800", fontSize: 7 * scale }}>{formatDuration(maximum * fraction)}</Text>
-      <View style={{ flex: 1, borderTopWidth: Math.max(1, scale), borderTopColor: trackColor, borderStyle: "dashed" }} />
+      <DashedLine color={trackColor} thickness={Math.max(1, scale)} dash={4 * scale} style={{ flex: 1 }} />
     </View>)}
     {report.days.map((day, index) => {
       const peak = day.seconds > 0 && day.seconds === report.bestDay?.seconds;

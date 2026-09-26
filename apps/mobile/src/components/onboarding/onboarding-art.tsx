@@ -2,6 +2,7 @@ import { Text } from "../ui/app-text";
 import { View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import { usePalette } from "../../theme";
+import { DashedLine } from "../ui/dashed-line";
 
 
 export function BrandMark({ compact = false }: { compact?: boolean }) {
@@ -109,7 +110,7 @@ function ConnectionArt() {
             <Text style={{ color: palette.text, fontSize: 11, fontWeight: "700" }}>WakaTime</Text>
           </View>
           <View style={{ flex: 1, alignItems: "center", gap: 7, paddingHorizontal: 9 }}>
-            <View style={{ height: 2, width: "100%", borderStyle: "dashed", borderTopWidth: 2, borderColor: palette.primary }} />
+            <DashedLine color={palette.primary} thickness={2} style={{ width: "100%" }} />
             <Text style={{ color: palette.primary, fontSize: 9, fontWeight: "700" }}>HTTPS</Text>
           </View>
           <View style={{ alignItems: "center", gap: 6 }}>

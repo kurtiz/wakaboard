@@ -8,6 +8,7 @@ import { MedalIcon } from "phosphor-react-native/src/icons/Medal";
 import { ShareNetworkIcon } from "phosphor-react-native/src/icons/ShareNetwork";
 import { Pressable, RefreshControl, View } from "react-native";
 import Animated from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLeaderboards } from "../../data/leaderboard-context";
 import { resolvedLeaderboardRank, type Leader, type LeaderboardScope } from "../../data/leaderboards";
 import { usePalette } from "../../theme";
@@ -15,6 +16,7 @@ import { runManualRefresh } from "../../haptic-actions";
 import { ScaleButton } from "../ui/scale-button";
 import { LoadingIndicator } from "../ui/loading-indicator";
 import { RefreshIndicator } from "../ui/refresh-indicator";
+import { usePullRefreshFeedback } from "../ui/use-pull-refresh-feedback";
 import { SegmentedPicker } from "../ui/segmented-picker";
 import { useLeaderboardScope } from "./leaderboard-scope";
 import { MemberAvatar } from "./member-avatar";
@@ -102,9 +104,11 @@ function RankingRow({ leader, scope, currentRank, palette }: { leader: Leader; s
 
 export function LeaderboardScreen() {
   const palette = usePalette();
+  const insets = useSafeAreaInsets();
   const [pullRefreshing, setPullRefreshing] = useState(false);
   const { offset, onScroll } = useAndroidPageScroll();
   const { boards, currentProfile, loading, error, refresh } = useLeaderboards();
+  const pull = usePullRefreshFeedback(offset, loading || pullRefreshing);
   const { scope, setScope } = useLeaderboardScope();
   const rawBoard = boards[scope];
   const rank = resolvedLeaderboardRank(rawBoard, currentProfile?.id ?? null);
@@ -120,7 +124,7 @@ export function LeaderboardScreen() {
   }
 
   return <AndroidPageFrame title="Leaderboards" offset={offset}>
-    <Animated.ScrollView contentInsetAdjustmentBehavior="automatic" onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined} scrollEventThrottle={16} refreshControl={<RefreshControl refreshing={loading || pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.primary} colors={process.env.EXPO_OS === "android" ? ["transparent"] : undefined} progressBackgroundColor={process.env.EXPO_OS === "android" ? "transparent" : undefined} progressViewOffset={process.env.EXPO_OS === "android" ? -100 : undefined} />} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 17, paddingBottom: board ? 220 : 30, gap: 18 }}>
+    <Animated.ScrollView contentInsetAdjustmentBehavior="automatic" onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined} onScrollBeginDrag={pull.onScrollBeginDrag} onTouchStart={pull.onTouchStart} onTouchMove={pull.onTouchMove} onTouchEnd={pull.onTouchEnd} onTouchCancel={pull.onTouchCancel} scrollEventThrottle={16} refreshControl={<RefreshControl refreshing={process.env.EXPO_OS === "android" ? loading || pullRefreshing : pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.primary} colors={process.env.EXPO_OS === "android" ? [pullRefreshing ? "transparent" : palette.primary] : undefined} progressBackgroundColor={process.env.EXPO_OS === "android" ? pullRefreshing ? "transparent" : palette.card : undefined} progressViewOffset={process.env.EXPO_OS === "android" ? pullRefreshing ? -100 : insets.top + 8 : undefined} />} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 17, paddingBottom: board ? 220 : 30, gap: 18 }}>
       <AndroidLargeTitle title="Leaderboards" offset={offset} />
       <ScopeSelector scope={scope} countryCode={countryCode} onChange={setScope} palette={palette} />
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -159,7 +163,7 @@ export function LeaderboardScreen() {
         </View>
       </> : null}
     </Animated.ScrollView>
-    <RefreshIndicator visible={pullRefreshing} color={palette.primary} />
+    <RefreshIndicator pulling={pull.pulling} refreshing={pullRefreshing} progress={pull.progress} color={palette.primary} />
     <StandingOverlay board={board} scope={scope} countryCode={countryCode} />
   </AndroidPageFrame>;
 }

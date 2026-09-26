@@ -5,6 +5,7 @@ import type { Leaderboard, LeaderboardScope } from "../../data/leaderboards";
 import type { AnalyticsRange } from "../insights/analytics-data";
 import { buildAnalytics } from "../insights/analytics-data";
 import { ShareBrand } from "./share-brand";
+import { DashedLine } from "../ui/dashed-line";
 
 export type ShareStyle = "editorial" | "night" | "rhythm";
 export type ShareContent =
@@ -48,7 +49,7 @@ function MiniBars({ values, labels, styleName, scale, height = 80 }: { values: n
   return <View style={{ height: height * scale, marginTop: 12 * scale }}>
     {[1, 0.5].map((part) => <View key={part} style={{ position: "absolute", top: (1 - part) * plot * scale, left: 0, right: 0, flexDirection: "row", alignItems: "center" }}>
       <Text numberOfLines={1} adjustsFontSizeToFit style={{ width: 39 * scale, paddingRight: 4 * scale, textAlign: "right", fontFamily: "Outfit", fontWeight: "800", fontSize: 7 * scale, color: c.muted }}>{formatDuration(max * part)}</Text>
-      <View style={{ flex: 1, borderTopWidth: Math.max(1, scale), borderStyle: "dashed", borderColor: c.line }} />
+      <DashedLine color={c.line} thickness={Math.max(1, scale)} dash={4 * scale} style={{ flex: 1 }} />
     </View>)}
     <View style={{ position: "absolute", left: 39 * scale, right: 0, bottom: 0, height: height * scale, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>{values.map((value, index) => <View key={index} style={{ width: `${100 / values.length}%`, alignItems: "center", justifyContent: "flex-end", height: height * scale }}>
       <View style={{ width: Math.min(25, 210 / values.length) * scale, height: Math.max(3, value / max * plot) * scale, backgroundColor: index === values.indexOf(max) ? c.highlight : c.accent, borderTopLeftRadius: 5 * scale, borderTopRightRadius: 5 * scale }} />

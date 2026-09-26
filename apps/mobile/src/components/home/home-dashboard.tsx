@@ -7,10 +7,12 @@ import { FireIcon } from "phosphor-react-native/src/icons/Fire";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Pressable, RefreshControl, View } from "react-native";
 import Animated from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OnboardingButton } from "../onboarding/onboarding-button";
 import { ChevronLink } from "../ui/chevron-link";
 import { LoadingIndicator } from "../ui/loading-indicator";
 import { RefreshIndicator } from "../ui/refresh-indicator";
+import { usePullRefreshFeedback } from "../ui/use-pull-refresh-feedback";
 import { BrandMark } from "../ui/brand-mark";
 import { AnimatedHeightBar, AnimatedProgressBar, AnimatedProgressRing } from "../ui/animated-progress";
 import { BarChartGuides } from "../ui/bar-chart-guides";
@@ -252,9 +254,11 @@ function StandingCard({ palette }: { palette: Palette }) {
 
 export function HomeDashboard() {
   const palette = usePalette();
+  const insets = useSafeAreaInsets();
   const { offset, onScroll } = useAndroidPageScroll();
   const { summaries, goalSeconds, loading, error, syncing, syncError, addSample, refresh, syncWakaTime } = useDashboard();
   const [pullRefreshing, setPullRefreshing] = useState(false);
+  const pull = usePullRefreshFeedback(offset, syncing || pullRefreshing);
   const { currentProfile, refresh: refreshLeaderboards } = useLeaderboards();
   const [name, setName] = useState<string | null>(null);
   const today = useMemo(() => new Date(), []);
@@ -292,8 +296,13 @@ export function HomeDashboard() {
     <Animated.ScrollView
       contentInsetAdjustmentBehavior="automatic"
       onScroll={android ? onScroll : undefined}
+      onScrollBeginDrag={pull.onScrollBeginDrag}
+      onTouchStart={pull.onTouchStart}
+      onTouchMove={pull.onTouchMove}
+      onTouchEnd={pull.onTouchEnd}
+      onTouchCancel={pull.onTouchCancel}
       scrollEventThrottle={16}
-      refreshControl={<RefreshControl refreshing={syncing || pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.accent} colors={android ? ["transparent"] : undefined} progressBackgroundColor={android ? "transparent" : undefined} progressViewOffset={android ? -100 : undefined} />}
+      refreshControl={<RefreshControl refreshing={android ? syncing || pullRefreshing : pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.accent} colors={android ? [pullRefreshing ? "transparent" : palette.accent] : undefined} progressBackgroundColor={android ? pullRefreshing ? "transparent" : palette.card : undefined} progressViewOffset={android ? pullRefreshing ? -100 : insets.top + 8 : undefined} />}
       style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 16, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 38 }}
     >
@@ -321,7 +330,7 @@ export function HomeDashboard() {
         <ChevronLink href="/activity" label="View activity timeline" color={palette.primary} fontSize={14} style={{ alignSelf: "center", paddingVertical: 10 }} />
       </> : null}
     </Animated.ScrollView>
-    <RefreshIndicator visible={pullRefreshing} color={palette.accent} />
+    <RefreshIndicator pulling={pull.pulling} refreshing={pullRefreshing} progress={pull.progress} color={palette.accent} />
     </AndroidPageFrame>
   );
 }
