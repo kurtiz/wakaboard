@@ -7,6 +7,8 @@
     "android": "pnpm --filter @wakaboard/mobile android",
     "ios": "pnpm --filter @wakaboard/mobile ios",
     "lint": "pnpm --filter @wakaboard/mobile lint",
-    "typecheck": "pnpm -r --if-present typecheck"
+    "typecheck": "pnpm -r --if-present typecheck",
+    "worker:template:sync": "node scripts/sync-worker-template.mjs",
+    "worker:template:check": "node scripts/sync-worker-template.mjs --check"
   }
 }

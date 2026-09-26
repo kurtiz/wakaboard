@@ -1,18 +1,13 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "wakaboard-api",
-  "account_id": "958856536d13e04221dbed6fda004ec5",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-25",
   "compatibility_flags": ["nodejs_compat"],
-  "vars": {
-    "BETTER_AUTH_URL": "https://wakaboard-api.papiliocurtis.workers.dev"
-  },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "wakaboard-auth",
-      "database_id": "d7b11eef-4bc0-4e77-b1e9-bcdb1b9eef3b",
       "migrations_dir": "migrations"
     }
   ]

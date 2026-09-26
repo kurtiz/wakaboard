@@ -1,0 +1,3 @@
+BETTER_AUTH_SECRET=replace-with-a-random-64-character-hex-string
+WAKATIME_CLIENT_ID=replace-with-your-wakatime-client-id
+WAKATIME_CLIENT_SECRET=replace-with-your-wakatime-client-secret

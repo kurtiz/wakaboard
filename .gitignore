@@ -36,6 +36,7 @@ yarn-error.*
 .env*.local
 .dev.vars
 .wrangler/
+apps/worker/wrangler.jsonc
 
 # typescript
 *.tsbuildinfo

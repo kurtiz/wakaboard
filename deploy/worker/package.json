@@ -1,0 +1,31 @@
+{
+  "name": "wakaboard-worker-template",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy && wrangler d1 migrations apply DB --remote"
+  },
+  "dependencies": {
+    "@better-auth/expo": "^1.7.5",
+    "better-auth": "^1.7.5",
+    "expo": "~57.0.25",
+    "react": "19.2.3",
+    "react-native": "0.86.3"
+  },
+  "cloudflare": {
+    "bindings": {
+      "DB": { "description": "D1 database for OAuth users, sessions, and account tokens. A new database is created for this deployment." },
+      "BETTER_AUTH_SECRET": { "description": "Generate a unique signing secret with `openssl rand -hex 32`." },
+      "WAKATIME_CLIENT_ID": { "description": "Client ID from your [WakaTime OAuth app](https://wakatime.com/apps)." },
+      "WAKATIME_CLIENT_SECRET": { "description": "Client secret from your WakaTime OAuth app. Keep it private." }
+    }
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260924.1",
+    "typescript": "~6.0.3",
+    "wrangler": "^4.137.0"
+  }
+}
