@@ -24,13 +24,13 @@ function dateLabel(date: string) {
   return new Date(`${date}T12:00:00`).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function Frame({ children, styleName, width, name, showName, source }: { children: ReactNode; styleName: ShareStyle; width: number; name: string | null; showName: boolean; source: string }) {
+function Frame({ children, styleName, width, name, showName, source, compact = false }: { children: ReactNode; styleName: ShareStyle; width: number; name: string | null; showName: boolean; source: string; compact?: boolean }) {
   const s = width / 360;
   const c = themes[styleName];
   return <View style={{ width, height: 450 * s, backgroundColor: c.bg, overflow: "hidden", padding: 26 * s }}>
     {styleName === "night" ? <View style={{ position: "absolute", width: 250 * s, height: 250 * s, borderRadius: 125 * s, borderWidth: 1 * s, borderColor: c.line, top: -100 * s, right: -90 * s }} /> : null}
     {styleName === "rhythm" ? <View style={{ position: "absolute", width: 340 * s, height: 340 * s, borderRadius: 170 * s, borderWidth: 2 * s, borderColor: c.line, top: -165 * s, right: -140 * s }} /> : null}
-    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 25 * s }}>
+    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: (compact ? 16 : 25) * s }}>
       <ShareBrand scale={s} light={styleName === "night"} />
       <Text style={{ fontFamily: "Outfit", fontWeight: "800", fontSize: 8 * s, color: c.muted }}>CODING RECORD</Text>
     </View>
@@ -100,21 +100,21 @@ export function StatShareArt({ content, styleName, width, name, showName }: Prop
     const start = new Date(content.today);
     start.setDate(start.getDate() - data.days + 1);
     const period = `${dateLabel(localDateKey(start))} to ${dateLabel(localDateKey(content.today))}`;
-    return <Frame styleName={styleName} width={width} name={name} showName={showName} source="WAKATIME DATA">
+    return <Frame styleName={styleName} width={width} name={name} showName={showName} source="WAKATIME DATA" compact>
       <Text numberOfLines={1} style={{ fontFamily: "Outfit", fontWeight: "800", letterSpacing: .5 * s, fontSize: 9 * s, color: c.accent }}>{period.toUpperCase()}</Text>
       <Text style={{ fontFamily: "Nunito", fontWeight: "800", fontSize: 32 * s, color: c.ink, marginTop: 4 * s }}>My coding report</Text>
       <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: "Outfit", fontWeight: "800", fontSize: 54 * s, color: c.ink, marginTop: 5 * s }}>{formatDuration(data.total)}</Text>
       <Text style={{ fontFamily: "Nunito", fontWeight: "700", fontSize: 11 * s, color: c.muted }}>Total coding time across {data.days} days</Text>
-      <View style={{ marginTop: 20 * s, padding: 14 * s, borderRadius: 12 * s, backgroundColor: c.panel }}>
+      <View style={{ marginTop: 14 * s, padding: 12 * s, borderRadius: 12 * s, backgroundColor: c.panel }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontFamily: "Outfit", fontWeight: "800", fontSize: 9 * s, color: c.muted }}>CODING CADENCE</Text><Text style={{ fontFamily: "Outfit", fontWeight: "800", fontSize: 8 * s, color: c.muted }}>PEAK {formatDuration(Math.max(...data.buckets.map((bucket) => bucket.seconds)))}</Text></View>
-        <MiniBars values={data.buckets.map((bucket) => bucket.seconds)} labels={data.buckets.map((bucket) => bucket.label.slice(0, 1))} styleName={styleName} scale={s} />
+        <MiniBars values={data.buckets.map((bucket) => bucket.seconds)} labels={data.buckets.map((bucket) => bucket.label.slice(0, 1))} styleName={styleName} scale={s} height={64} />
       </View>
-      <View style={{ flexDirection: "row", gap: 10 * s, marginTop: 19 * s }}>
+      <View style={{ flexDirection: "row", gap: 10 * s, marginTop: 13 * s }}>
         <Stat label="ACTIVE DAYS" value={`${data.activeDays} of ${data.days}`} c={c} scale={s} />
         <Stat label="DAILY PACE" value={formatDuration(data.total / data.days)} c={c} scale={s} />
         <Stat label="PEAK STREAK" value={`${data.peakStreak} days`} c={c} scale={s} />
       </View>
-      {content.showProject && data.projects[0] ? <Text numberOfLines={1} style={{ fontFamily: "Nunito", fontWeight: "800", fontSize: 10 * s, color: c.muted, marginTop: 12 * s }}>Top project: {data.projects[0].name}</Text> : null}
+      {content.showProject && data.projects[0] ? <Text numberOfLines={1} style={{ fontFamily: "Nunito", fontWeight: "800", fontSize: 10 * s, color: c.muted, marginTop: 8 * s }}>Top project: {data.projects[0].name}</Text> : null}
     </Frame>;
   }
   const { board, scope, mode } = content;
