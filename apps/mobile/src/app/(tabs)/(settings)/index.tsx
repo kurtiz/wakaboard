@@ -17,6 +17,7 @@ import Animated from "react-native-reanimated";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../../../components/navigation/android-page-header";
 import { SettingsButton, SettingsCard } from "../../../components/settings/settings-card";
 import { SyncSwitch } from "../../../components/settings/sync-switch";
+import { ScaleButton } from "../../../components/ui/scale-button";
 import { SegmentedPicker } from "../../../components/ui/segmented-picker";
 import { Text as AppText } from "../../../components/ui/app-text";
 import { HapticPreset } from "../../../constants/haptics";
@@ -274,15 +275,15 @@ export default function SettingsScreen() {
             <AppText selectable style={{ color: palette.primary, fontSize: 18, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{formatDuration(selectedHours * 3600)} / day</AppText>
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Decrease daily goal by 30 minutes" disabled={selectedHours <= 0.5 || saving} onPress={() => adjustGoal(-0.5)} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: palette.card, alignItems: "center", justifyContent: "center", opacity: selectedHours <= 0.5 || saving ? 0.5 : 1 }}><MinusIcon size={17} color={palette.text} /></Pressable>
+            <ScaleButton label="Decrease daily goal by 30 minutes" disabled={selectedHours <= 0.5 || saving} onPress={() => adjustGoal(-0.5)} glass="clear" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: palette.card, alignItems: "center", justifyContent: "center" }}><MinusIcon size={17} color={palette.text} /></ScaleButton>
             <Host style={{ flex: 1, height: 42 }} seedColor={palette.accent} colorScheme={palette.scheme}>
               <Slider value={selectedHours} min={0.5} max={12} step={0.5} onValueChange={setDraftHours} disabled={saving} testID="daily-goal-slider" />
             </Host>
-            <Pressable accessibilityRole="button" accessibilityLabel="Increase daily goal by 30 minutes" disabled={selectedHours >= 12 || saving} onPress={() => adjustGoal(0.5)} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: palette.card, alignItems: "center", justifyContent: "center", opacity: selectedHours >= 12 || saving ? 0.5 : 1 }}><PlusIcon size={17} color={palette.text} /></Pressable>
+            <ScaleButton label="Increase daily goal by 30 minutes" disabled={selectedHours >= 12 || saving} onPress={() => adjustGoal(0.5)} glass="clear" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: palette.card, alignItems: "center", justifyContent: "center" }}><PlusIcon size={17} color={palette.text} /></ScaleButton>
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             <AppText style={{ color: palette.muted, fontSize: 11 }}>30 min to 12 hours</AppText>
-            {draftHours !== null && draftHours !== goalSeconds / 3600 && <Pressable accessibilityRole="button" disabled={saving} onPress={() => void saveGoal()} style={{ minHeight: 36, paddingHorizontal: 15, borderRadius: 18, backgroundColor: palette.primary, alignItems: "center", justifyContent: "center", opacity: saving ? 0.5 : 1 }}><AppText style={{ color: palette.onPrimary, fontSize: 12, fontWeight: "800" }}>{saving ? "Saving…" : "Save target"}</AppText></Pressable>}
+            {draftHours !== null && draftHours !== goalSeconds / 3600 && <ScaleButton label={saving ? "Saving target" : "Save target"} disabled={saving} onPress={() => void saveGoal()} glass="regular" style={{ minHeight: 36, paddingHorizontal: 15, borderRadius: 18, backgroundColor: palette.primary, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.onPrimary, fontSize: 12, fontWeight: "800" }}>{saving ? "Saving…" : "Save target"}</AppText></ScaleButton>}
           </View>
         </View>
         {goalError && <AppText accessibilityRole="alert" style={{ color: palette.error, fontSize: 12 }}>{goalError}</AppText>}
@@ -311,8 +312,8 @@ export default function SettingsScreen() {
           <SyncSwitch value={autoSync} disabled={preferenceBusy} onValueChange={(enabled) => void changeAutoSync(enabled)} />
         </View>}
         {accountEmail && <SettingsButton label={syncing ? "Syncing…" : "Sync now"} disabled={syncing || accountBusy} onPress={() => void runManualRefresh(syncWakaTime)} icon={<ArrowsClockwiseIcon size={18} weight="bold" color={palette.onPrimary} />} />}
-        {savedDays > 0 && <Pressable accessibilityRole="button" accessibilityLabel="Remove saved activity" disabled={clearingOffline || syncing} onPress={confirmClearOffline} style={{ minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, opacity: clearingOffline || syncing ? 0.5 : 1 }}><TrashIcon size={16} color={palette.error} /><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "700" }}>{clearingOffline ? "Removing…" : "Remove saved activity"}</AppText></Pressable>}
-        {hasSample && <Pressable accessibilityRole="button" onPress={() => void removeSample()} style={{ minHeight: 44, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.muted, fontSize: 12, fontWeight: "700" }}>Remove sample activity</AppText></Pressable>}
+        {savedDays > 0 && <ScaleButton label="Remove saved activity" disabled={clearingOffline || syncing} onPress={confirmClearOffline} glass="clear" style={{ minHeight: 44, borderRadius: 22, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 }}><TrashIcon size={16} color={palette.error} /><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "700" }}>{clearingOffline ? "Removing…" : "Remove saved activity"}</AppText></ScaleButton>}
+        {hasSample && <ScaleButton label="Remove sample activity" onPress={() => void removeSample()} glass="clear" style={{ minHeight: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.muted, fontSize: 12, fontWeight: "700" }}>Remove sample activity</AppText></ScaleButton>}
         {(dataError || syncError) && <AppText accessibilityRole="alert" style={{ color: palette.error, fontSize: 12 }}>{dataError ?? syncError}</AppText>}
       </SettingsCard>
 
@@ -323,7 +324,7 @@ export default function SettingsScreen() {
       <View style={{ backgroundColor: palette.card, borderColor: palette.border, borderWidth: 1, borderRadius: 24, borderCurve: "continuous", padding: 18, gap: 12 }}>
         <AppText style={{ color: palette.primary, fontSize: 17, fontWeight: "800" }}>WakaBoard</AppText>
         <View style={{ backgroundColor: palette.homeSurface, borderRadius: 11, paddingHorizontal: 12, minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><AppText style={{ color: palette.muted, fontSize: 12 }}>Activity source</AppText><AppText style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>WakaTime</AppText></View>
-        {accountEmail && <Pressable accessibilityRole="button" accessibilityLabel="Sign out of WakaTime" disabled={accountBusy || syncing} onPress={() => void signOut()} style={{ minHeight: 44, borderRadius: 22, backgroundColor: palette.homeSubtle, alignItems: "center", justifyContent: "center", opacity: accountBusy || syncing ? 0.5 : 1 }}><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "800" }}>Sign out</AppText></Pressable>}
+        {accountEmail && <ScaleButton label="Sign out of WakaTime" disabled={accountBusy || syncing} onPress={() => void signOut()} glass="clear" style={{ minHeight: 44, borderRadius: 22, backgroundColor: palette.homeSubtle, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "800" }}>Sign out</AppText></ScaleButton>}
       </View>
     </View>
   </Animated.ScrollView>;

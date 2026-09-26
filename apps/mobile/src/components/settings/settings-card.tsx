@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { usePalette } from "../../theme";
+import { ScaleButton } from "../ui/scale-button";
 import { Text } from "../ui/app-text";
 
 export function SettingsCard({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
@@ -16,8 +17,8 @@ export function SettingsCard({ title, icon, children }: { title: string; icon: R
 
 export function SettingsButton({ label, onPress, disabled, icon }: { label: string; onPress: () => void; disabled?: boolean; icon?: ReactNode }) {
   const palette = usePalette();
-  return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => ({ minHeight: 48, borderRadius: 999, borderCurve: "continuous", backgroundColor: palette.primary, opacity: disabled ? 0.5 : pressed ? 0.8 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, paddingHorizontal: 16 })}>
+  return <ScaleButton label={label} disabled={disabled} onPress={onPress} glass="regular" style={{ minHeight: 48, borderRadius: 999, borderCurve: "continuous", backgroundColor: palette.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, paddingHorizontal: 16 }}>
     {icon}
     <Text style={{ color: palette.onPrimary, fontSize: 14, fontWeight: "800" }}>{label}</Text>
-  </Pressable>;
+  </ScaleButton>;
 }
