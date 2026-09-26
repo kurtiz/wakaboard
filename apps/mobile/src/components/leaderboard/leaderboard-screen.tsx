@@ -5,10 +5,11 @@ import { useState } from "react";
 import { GlobeIcon } from "phosphor-react-native/src/icons/Globe";
 import { LockKeyIcon } from "phosphor-react-native/src/icons/LockKey";
 import { MedalIcon } from "phosphor-react-native/src/icons/Medal";
+import { ShareNetworkIcon } from "phosphor-react-native/src/icons/ShareNetwork";
 import { Pressable, RefreshControl, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useLeaderboards } from "../../data/leaderboard-context";
-import type { Leader, LeaderboardScope } from "../../data/leaderboards";
+import { resolvedLeaderboardRank, type Leader, type LeaderboardScope } from "../../data/leaderboards";
 import { usePalette } from "../../theme";
 import { runManualRefresh } from "../../haptic-actions";
 import { ScaleButton } from "../ui/scale-button";
@@ -103,9 +104,11 @@ export function LeaderboardScreen() {
   const palette = usePalette();
   const [pullRefreshing, setPullRefreshing] = useState(false);
   const { offset, onScroll } = useAndroidPageScroll();
-  const { boards, loading, error, refresh } = useLeaderboards();
+  const { boards, currentProfile, loading, error, refresh } = useLeaderboards();
   const { scope, setScope } = useLeaderboardScope();
-  const board = boards[scope];
+  const rawBoard = boards[scope];
+  const rank = resolvedLeaderboardRank(rawBoard, currentProfile?.id ?? null);
+  const board = rawBoard && rank !== rawBoard.rank ? { ...rawBoard, rank } : rawBoard;
   const countryCode = boards.country?.countryCode ?? boards.global?.countryCode ?? null;
   const leaders = scope === "country" && !countryCode ? [] : (board?.leaders ?? []).slice(0, 10);
   const updated = board?.updatedAt ? new Date(board.updatedAt) : null;
@@ -138,6 +141,7 @@ export function LeaderboardScreen() {
       </View> : null}
       {leaders.length ? <Podium leaders={leaders} scope={scope} palette={palette} /> : null}
       {board && (scope === "global" || countryCode) ? <>
+        {board.rank || leaders.length > 0 ? <ScaleButton label="Create leaderboard share image" onPress={() => router.push({ pathname: "/share/leaderboard", params: { scope } })} style={{ minHeight: 64, borderRadius: 19, backgroundColor: palette.homeHero, paddingHorizontal: 17, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><View style={{ flex: 1, gap: 3 }}><Text style={{ color: palette.homeHeroText, fontSize: 15, fontWeight: "800" }}>{board.rank ? "Share your leaderboard spot" : `Share the ${scope === "country" ? "country" : "global"} leaders`}</Text><Text style={{ color: palette.homeHeroMuted, fontSize: 11 }}>{board.rank && board.rank <= 3 ? "Choose top three or only you" : board.rank ? "Create a personal ranking card" : "Create a top three ranking card"}</Text></View><ShareNetworkIcon size={21} color={palette.homeHeroText} weight="bold" /></ScaleButton> : null}
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8, paddingHorizontal: 3 }}>
           <Text accessibilityRole="header" style={{ color: palette.text, fontSize: 12, fontWeight: "800", letterSpacing: 1, textTransform: "uppercase" }}>Rankings</Text>
           <Text style={{ color: palette.muted, fontSize: 11 }}>{leaders.length ? `Top ${leaders.length} · ${updatedLabel}` : updatedLabel}</Text>

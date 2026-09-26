@@ -26,7 +26,7 @@ type WakaTimeProfile = {
 };
 
 type WakaTimeLeaders = {
-  current_user?: { rank?: number | null; user?: { city?: { country_code?: string } } };
+  current_user?: { rank?: number | null; page?: number | null; user?: { id?: string; city?: { country_code?: string } } };
   data?: WakaTimeLeader[];
   page?: number;
   total_pages?: number;
@@ -128,6 +128,7 @@ export default {
       if (!Array.isArray(globalBoard.data)) return json({ error: "Invalid WakaTime leaderboard" }, 502);
       const countryCode = globalBoard.current_user?.user?.city?.country_code?.toUpperCase() ?? null;
       let board = globalBoard;
+      let boardUrl = globalUrl;
       if (scope === "country" && countryCode && /^[A-Z]{2}$/.test(countryCode)) {
         const countryUrl = new URL(globalUrl);
         countryUrl.searchParams.set("country_code", countryCode);
@@ -135,8 +136,25 @@ export default {
         if (!countryResponse.ok) return json({ error: "Country leaderboard is unavailable" }, 502);
         board = await countryResponse.json() as WakaTimeLeaders;
         if (!Array.isArray(board.data)) return json({ error: "Invalid country leaderboard" }, 502);
+        boardUrl = countryUrl;
       }
       const entries = scope === "country" && !countryCode ? [] : (board.data ?? []).slice(0, 20);
+      const ownId = board.current_user?.user?.id ?? globalBoard.current_user?.user?.id;
+      let ownEntry = ownId ? board.data?.find((entry) => entry.user?.id === ownId) : undefined;
+      if (!ownEntry && ownId && (scope === "global" || countryCode)) {
+        const ownPageUrl = new URL(boardUrl);
+        const ownPage = board.current_user?.page;
+        if (ownPage && Number.isInteger(ownPage) && ownPage > 0) ownPageUrl.searchParams.set("page", String(ownPage));
+        else ownPageUrl.searchParams.delete("page");
+        try {
+          const ownPageResponse = await fetch(ownPageUrl, { headers });
+          if (ownPageResponse.ok) {
+            const ownBoard = await ownPageResponse.json() as WakaTimeLeaders;
+            ownEntry = ownBoard.data?.find((entry) => entry.user?.id === ownId);
+          }
+        } catch { /* Keep the first-page rankings available if the user's page cannot load. */ }
+      }
+      const currentRunningTotal = ownEntry?.running_total;
       const photos = new Map<string, string>();
       for (let index = 0; index < Math.min(entries.length, 10); index += 4) {
         const group = entries.slice(index, Math.min(index + 4, 10));
@@ -150,7 +168,12 @@ export default {
       return json({
         scope,
         countryCode,
-        rank: scope === "country" && !countryCode ? null : board.current_user?.rank ?? null,
+        rank: scope === "country" && !countryCode ? null : board.current_user?.rank ?? ownEntry?.rank ?? null,
+        currentUser: currentRunningTotal ? {
+          seconds: currentRunningTotal.total_seconds ?? 0,
+          dailyAverage: currentRunningTotal.daily_average ?? 0,
+          languages: (currentRunningTotal.languages ?? []).map((language) => ({ name: language.name, seconds: language.total_seconds })),
+        } : null,
         leaders: entries.map((entry) => ({
           id: entry.user?.id ?? String(entry.rank),
           rank: entry.rank,

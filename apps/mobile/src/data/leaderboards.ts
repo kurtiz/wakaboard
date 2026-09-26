@@ -29,10 +29,18 @@ export type Leaderboard = {
   scope: LeaderboardScope;
   countryCode: string | null;
   rank: number | null;
+  currentUser?: { seconds: number; dailyAverage: number; languages: { name: string; seconds: number }[] } | null;
   leaders: Leader[];
   range: string;
   updatedAt: string | null;
 };
+
+export function resolvedLeaderboardRank(board: Leaderboard | null, profileId: string | null): number | null {
+  if (!board) return null;
+  if (typeof board.rank === "number" && board.rank > 0) return board.rank;
+  if (!profileId) return null;
+  return board.leaders.find((leader) => leader.id === profileId)?.rank ?? null;
+}
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "");
 

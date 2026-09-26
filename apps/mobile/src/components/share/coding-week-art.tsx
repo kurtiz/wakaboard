@@ -1,6 +1,7 @@
 import { formatDuration } from "@wakaboard/core";
 import { Text, View, type TextStyle, type ViewStyle } from "react-native";
 import type { CodingWeekReport } from "./coding-week-data";
+import { ShareBrand } from "./share-brand";
 
 export type CodingWeekStyle = "editorial" | "night" | "rhythm";
 
@@ -62,13 +63,7 @@ function PositionedText({ children, x, y, w, size, color, scale, weight = "700",
 }
 
 function Brand({ scale, light = false, x = 26, y = 24 }: { scale: number; light?: boolean; x?: number; y?: number }) {
-  const ink = light ? colors.white : colors.pine;
-  return <View style={{ position: "absolute", left: x * scale, top: y * scale, flexDirection: "row", alignItems: "center", gap: 8 * scale }}>
-    <View style={{ width: 14 * scale, height: 16 * scale, flexDirection: "row", alignItems: "flex-end", gap: 2 * scale }}>
-      {[9, 16, 12].map((height) => <View key={height} style={{ width: 3.3 * scale, height: height * scale, borderRadius: 2 * scale, backgroundColor: light ? colors.mint : colors.emerald }} />)}
-    </View>
-    <Text style={{ fontFamily: "Outfit", fontSize: 12 * scale, fontWeight: "800", letterSpacing: 1.5 * scale, color: ink }}>WAKABOARD</Text>
-  </View>;
+  return <ShareBrand scale={scale} light={light} style={{ position: "absolute", left: x * scale, top: y * scale }} />;
 }
 
 function Rule({ x, y, w, scale, color }: { x: number; y: number; w: number; scale: number; color: string }) {
@@ -183,7 +178,7 @@ function Rhythm({ report, scale, name, showName, showProject }: Omit<Props, "sty
     <PositionedText x={24} y={70} w={312} size={9} color={colors.pine} scale={scale} style={{ letterSpacing: .7 * scale }}>{`MY CODING WEEK · ${period(report).toUpperCase()}`}</PositionedText>
     <PositionedText x={18} y={92} w={320} size={67} color={colors.pine} scale={scale} weight="700" style={{ letterSpacing: -3 * scale }}>{formatDuration(report.totalSeconds)}</PositionedText>
     <PositionedText x={24} y={181} w={306} size={20} color={colors.pine} scale={scale} font="Nunito" weight="800">Made time to make things.</PositionedText>
-    <View style={{ position: "absolute", left: 24 * scale, top: 226 * scale, paddingHorizontal: 9 * scale, height: 27 * scale, backgroundColor: colors.pine, borderRadius: 6 * scale, justifyContent: "center" }}><Text style={{ fontFamily: "Outfit", fontSize: 11 * scale, fontWeight: "800", color: colors.white }}>{report.activeDays} active days</Text></View>
+    <View style={{ position: "absolute", left: 24 * scale, top: 219 * scale, paddingHorizontal: 9 * scale, height: 27 * scale, backgroundColor: colors.pine, borderRadius: 6 * scale, justifyContent: "center" }}><Text style={{ fontFamily: "Outfit", fontSize: 11 * scale, fontWeight: "800", color: colors.white }}>{report.activeDays} active days</Text></View>
     <View style={{ position: "absolute", left: 0, top: 254 * scale, right: 0, height: 108 * scale, backgroundColor: colors.pine }} />
     <PositionedText x={24} y={261} w={170} size={9} color="#D8EBDD" scale={scale} style={{ letterSpacing: .7 * scale }}>THE WEEK, IN HOURS</PositionedText>
     <WeekBars report={report} x={24} y={279} w={312} h={77} scale={scale} dark compact />

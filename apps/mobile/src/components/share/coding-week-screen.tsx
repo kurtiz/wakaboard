@@ -77,7 +77,7 @@ export function CodingWeekScreen() {
     }
   }
 
-  return <ScrollView style={{ flex: 1, backgroundColor: palette.background }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 18, paddingBottom: Math.max(30, insets.bottom + 20), gap: 18 }}>
+  return <ScrollView style={{ flex: 1, backgroundColor: palette.background }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: process.env.EXPO_OS === "android" ? insets.top + 18 : 18, paddingBottom: Math.max(30, insets.bottom + 20), gap: 18 }}>
     {process.env.EXPO_OS === "android" ? <ScaleButton label="Back to analytics" onPress={() => router.back()} style={{ alignSelf: "flex-start", width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: palette.card }}><ArrowLeftIcon size={22} color={palette.text} /></ScaleButton> : null}
     <View style={{ gap: 5 }}>
       <Text accessibilityRole="header" style={{ fontFamily: "Outfit", fontSize: 28, fontWeight: "800", color: palette.text }}>Your coding week</Text>

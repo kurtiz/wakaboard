@@ -9,7 +9,7 @@ import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { LockKeyIcon } from "phosphor-react-native/src/icons/LockKey";
 import { ShareNetworkIcon } from "phosphor-react-native/src/icons/ShareNetwork";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, FlatList, RefreshControl, ScrollView, Share, View } from "react-native";
+import { FlatList, RefreshControl, ScrollView, View } from "react-native";
 import Animated, { Easing, FadeIn, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboard } from "../../data/dashboard-context";
@@ -208,15 +208,8 @@ export function ActivityTimeline() {
     void runManualRefresh(refreshActivity, true).finally(() => setPullRefreshing(false));
   }
 
-  async function shareDay() {
-    if (!summary) return;
-    const projectLines = projects.slice(0, 5).map((project) => `• ${project.name}: ${formatDuration(project.seconds)}`).join("\n");
-    const message = `WakaBoard · ${dateLabel(selectedKey, todayKey)}\nCoding time: ${formatDuration(summary.totalSeconds)}\n${projectLines}`;
-    try {
-      await Share.share({ message, title: "WakaBoard daily activity" });
-    } catch {
-      Alert.alert("Unable to share", "Please try sharing your activity again.");
-    }
+  function shareDay() {
+    router.push({ pathname: "/share/daily", params: { date: selectedKey } });
   }
 
   return <AndroidPageFrame title="Activity" offset={offset} back>
@@ -238,7 +231,7 @@ export function ActivityTimeline() {
         </ScaleButton>
         <ScaleButton label="Next day" disabled={selectedKey >= todayKey} onPress={() => selectDay(adjacentDay(selectedKey, 1))} style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeSubtle }}><CaretRightIcon color={palette.text} size={17} weight="bold" /></ScaleButton>
         <View style={{ flex: 1 }} />
-        <ScaleButton label="Share this day's activity" disabled={!summary} onPress={() => void shareDay()} glass="clear" style={{ width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeSubtle }}><ShareNetworkIcon color={palette.primary} size={18} weight="bold" /></ScaleButton>
+        <ScaleButton label="Share this day's activity" disabled={!summary || summary.source !== "wakatime"} onPress={shareDay} glass="clear" style={{ width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeSubtle }}><ShareNetworkIcon color={palette.primary} size={18} weight="bold" /></ScaleButton>
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 7, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999, backgroundColor: palette.homeMintSurface }}>

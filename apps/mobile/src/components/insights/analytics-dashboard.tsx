@@ -5,7 +5,7 @@ import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { ChartLineUpIcon } from "phosphor-react-native/src/icons/ChartLineUp";
 import { ShareNetworkIcon } from "phosphor-react-native/src/icons/ShareNetwork";
 import { useMemo, useState, type ReactNode } from "react";
-import { Alert, Share, View, type StyleProp, type ViewStyle } from "react-native";
+import { View, type StyleProp, type ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboard } from "../../data/dashboard-context";
@@ -163,14 +163,8 @@ export function AnalyticsDashboard() {
   const data = useMemo(() => buildAnalytics(summaries, range, today), [summaries, range, today]);
   const peakIndex = data.buckets.reduce((best, bucket, index) => bucket.seconds > (data.buckets[best]?.seconds ?? -1) ? index : best, 0);
   const selectedIndex = selectedBucket !== null && selectedBucket < data.buckets.length ? selectedBucket : peakIndex;
-  async function shareReport() {
-    const period = range === "all" ? "all saved activity" : `the last ${range} days`;
-    const message = `WakaBoard · ${period}\nCoding time: ${formatDuration(data.total)}\nActive days: ${data.activeDays}/${data.days}\nDaily pace: ${formatDuration(data.total / data.days)}\nPeak streak: ${data.peakStreak} days`;
-    try {
-      await Share.share({ message, title: "WakaBoard coding summary" });
-    } catch {
-      Alert.alert("Unable to share", "Please try sharing your summary again.");
-    }
+  function shareReport() {
+    router.push({ pathname: "/share/analytics", params: { range: String(range) } });
   }
   return (
     <AndroidPageFrame title="Analytics" offset={offset}>
@@ -201,7 +195,7 @@ export function AnalyticsDashboard() {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 15, borderRadius: 22, backgroundColor: palette.homeSurface }}>
         <View style={{ width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeMintSurface }}><ChartLineUpIcon color={palette.primary} size={20} weight="bold" /></View>
         <View style={{ flex: 1, gap: 3 }}><Text style={{ color: palette.text, fontSize: 14, fontWeight: "800" }}>Your coding report</Text><Text style={{ color: palette.muted, fontSize: 11 }}>Share the summary for this range</Text></View>
-        <ScaleButton label="Share coding report" onPress={() => void shareReport()} glass="clear" style={{ width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: palette.card }}><ShareNetworkIcon color={palette.primary} size={20} weight="bold" /></ScaleButton>
+        <ScaleButton label="Share coding report" onPress={shareReport} glass="clear" style={{ width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: palette.card }}><ShareNetworkIcon color={palette.primary} size={20} weight="bold" /></ScaleButton>
       </View>
       <ScaleButton label="Open activity timeline" onPress={() => router.push("/activity")} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, padding: 16, minHeight: 68, borderRadius: 22, backgroundColor: palette.homeSurface }}>
         <View style={{ flex: 1, gap: 3 }}><Text style={{ color: palette.text, fontSize: 15, fontWeight: "800" }}>Activity timeline</Text><Text style={{ color: palette.muted, fontSize: 11 }}>Explore your saved coding days</Text></View>

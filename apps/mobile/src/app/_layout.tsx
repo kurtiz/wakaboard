@@ -43,6 +43,9 @@ function AppStack({ palette }: { palette: ReturnType<typeof usePalette> }) {
   return <Stack screenOptions={{ headerShown: false, headerBackButtonDisplayMode: "minimal" }}>
     <Stack.Screen name="activity" options={{ ...pageHeaderOptions(palette, font), headerLargeTitleEnabled: false, title: "Activity" }} />
     <Stack.Screen name="share/coding-week" options={{ ...pageHeaderOptions(palette, font), headerLargeTitleEnabled: false, title: "Coding week" }} />
+    <Stack.Screen name="share/daily" options={{ ...pageHeaderOptions(palette, font), headerLargeTitleEnabled: false, title: "Coding day" }} />
+    <Stack.Screen name="share/analytics" options={{ ...pageHeaderOptions(palette, font), headerLargeTitleEnabled: false, title: "Coding report" }} />
+    <Stack.Screen name="share/leaderboard" options={{ ...pageHeaderOptions(palette, font), headerLargeTitleEnabled: false, title: "Leaderboard card" }} />
     <Stack.Screen name="profile/[id]" options={{ ...pageHeaderOptions(palette, font), title: "Profile" }} />
   </Stack>;
 }
