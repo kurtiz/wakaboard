@@ -1,7 +1,10 @@
 {
   "expo": {
     "scheme": "wakaboard",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "userInterfaceStyle": "automatic",
     "orientation": "default",
     "plugins": [
@@ -40,6 +43,13 @@
     "ios": {
       "bundleIdentifier": "com.kompyler.wakaboard",
       "icon": "./assets/icons/WakaBoard.icon"
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2ebf1743-5056-4fbf-bb73-435469ab5b89"
+      }
+    },
+    "owner": "wakaboard"
   }
 }
