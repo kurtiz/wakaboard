@@ -15,9 +15,9 @@ export type ShareContent =
 
 type Props = { content: ShareContent; styleName: ShareStyle; width: number; name: string | null; showName: boolean };
 const themes = {
-  editorial: { bg: "#FAF9F3", ink: "#122B24", muted: "#536F62", accent: "#0D5C4D", panel: "#E9F1E8", line: "#CBDACD", highlight: "#FEA619" },
-  night: { bg: "#122B24", ink: "#F7FBF6", muted: "#B7D6C5", accent: "#73D5A2", panel: "#193D31", line: "#4B725F", highlight: "#FEA619" },
-  rhythm: { bg: "#FEA619", ink: "#122B24", muted: "#36503F", accent: "#122B24", panel: "#F8E7B7", line: "#B98724", highlight: "#0D5C4D" },
+  editorial: { bg: "#FAF9F3", ink: "#122B24", muted: "#536F62", accent: "#0D5C4D", panel: "#E9F1E8", line: "#CBDACD", highlight: "#FEA619", highlightInk: "#122B24" },
+  night: { bg: "#122B24", ink: "#F7FBF6", muted: "#B7D6C5", accent: "#73D5A2", panel: "#193D31", line: "#4B725F", highlight: "#FEA619", highlightInk: "#122B24" },
+  rhythm: { bg: "#FEA619", ink: "#122B24", muted: "#36503F", accent: "#122B24", panel: "#F8E7B7", line: "#B98724", highlight: "#0D5C4D", highlightInk: "#FFFFFF" },
 };
 
 function dateLabel(date: string) {
@@ -128,11 +128,15 @@ export function StatShareArt({ content, styleName, width, name, showName }: Prop
     <Text style={{ fontFamily: "Nunito", fontWeight: "800", fontSize: 30 * s, color: c.ink, marginTop: 5 * s }}>{mode === "podium" ? board.rank && board.rank <= 3 ? "I made the top 3" : scope === "country" ? "Country top 3" : "Global top 3" : "My leaderboard spot"}</Text>
     {mode === "podium" ? <>
       <View style={{ marginTop: 20 * s, gap: 8 * s }}>
-        {podium.map((leader) => <View key={leader.id} style={{ minHeight: 56 * s, borderRadius: 12 * s, paddingHorizontal: 13 * s, flexDirection: "row", alignItems: "center", backgroundColor: leader.rank === board.rank ? c.highlight : c.panel }}>
-          <Text style={{ width: 42 * s, fontFamily: "Outfit", fontWeight: "800", fontSize: 23 * s, color: c.ink }}>#{leader.rank}</Text>
-          <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontFamily: "Outfit", fontWeight: "800", fontSize: 13 * s, color: c.ink }}>{leader.rank === board.rank && !showName ? "You" : leader.name}</Text><Text style={{ fontFamily: "Nunito", fontWeight: "800", fontSize: 9 * s, color: c.muted }}>{leader.rank === board.rank ? "YOUR RANK" : "TOP MEMBER"}</Text></View>
-          <Text style={{ fontFamily: "Outfit", fontWeight: "800", fontSize: 13 * s, color: c.ink }}>{formatDuration(leader.seconds)}</Text>
-        </View>)}
+        {podium.map((leader) => {
+          const isCurrent = leader.rank === board.rank;
+          const rowInk = isCurrent ? c.highlightInk : c.ink;
+          return <View key={leader.id} style={{ minHeight: 56 * s, borderRadius: 12 * s, paddingHorizontal: 13 * s, flexDirection: "row", alignItems: "center", backgroundColor: isCurrent ? c.highlight : c.panel }}>
+            <Text style={{ width: 42 * s, fontFamily: "Outfit", fontWeight: "800", fontSize: 23 * s, color: rowInk }}>#{leader.rank}</Text>
+            <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontFamily: "Outfit", fontWeight: "800", fontSize: 13 * s, color: rowInk }}>{isCurrent && !showName ? "You" : leader.name}</Text><Text style={{ fontFamily: "Nunito", fontWeight: "800", fontSize: 9 * s, color: isCurrent ? rowInk : c.muted }}>TOP MEMBER</Text></View>
+            <Text style={{ fontFamily: "Outfit", fontWeight: "800", fontSize: 13 * s, color: rowInk }}>{formatDuration(leader.seconds)}</Text>
+          </View>;
+        })}
       </View>
       <Text style={{ fontFamily: "Nunito", fontWeight: "800", fontSize: 11 * s, color: c.muted, marginTop: 18 * s }}>Ranked by recorded coding time</Text>
     </> : <>
