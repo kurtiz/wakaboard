@@ -3,7 +3,7 @@ import * as Sharing from "expo-sharing";
 import { ShareNetworkIcon } from "phosphor-react-native/src/icons/ShareNetwork";
 import { ArrowLeftIcon } from "phosphor-react-native/src/icons/ArrowLeft";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, PixelRatio, ScrollView, Switch, Text, View, useWindowDimensions } from "react-native";
+import { Alert, PixelRatio, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { captureRef } from "react-native-view-shot";
 import { useDashboard } from "../../data/dashboard-context";
@@ -13,6 +13,7 @@ import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
 import { CodingWeekArt, type CodingWeekStyle } from "./coding-week-art";
 import { buildCodingWeekReport } from "./coding-week-data";
+import { ShareCardSwitch } from "./share-card-switch";
 
 const styles: { id: CodingWeekStyle; label: string; description: string; color: string }[] = [
   { id: "editorial", label: "Editorial", description: "Warm and spacious", color: "#FAF9F3" },
@@ -96,9 +97,9 @@ export function CodingWeekScreen() {
         <View style={{ flexDirection: "row", gap: 8 }}>{styles.map((option) => <Choice key={option.id} {...option} selected={styleName === option.id} onPress={() => setStyleName(option.id)} palette={palette} />)}</View>
       </View>
       <View style={{ backgroundColor: palette.card, borderRadius: 20, paddingHorizontal: 16 }}>
-        {name ? <View style={{ minHeight: 57, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}><View style={{ flex: 1 }}><Text style={{ fontFamily: "Outfit", fontSize: 14, fontWeight: "700", color: palette.text }}>Show my name</Text><Text numberOfLines={1} style={{ fontFamily: "Nunito", fontSize: 11, color: palette.muted }}>{name}</Text></View><Switch value={showName} onValueChange={setShowName} accessibilityLabel="Show my name on card" trackColor={{ true: palette.primary }} /></View> : null}
+        {name ? <View style={{ minHeight: 57, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}><View style={{ flex: 1 }}><Text style={{ fontFamily: "Outfit", fontSize: 14, fontWeight: "700", color: palette.text }}>Show my name</Text><Text numberOfLines={1} style={{ fontFamily: "Nunito", fontSize: 11, color: palette.muted }}>{name}</Text></View><ShareCardSwitch value={showName} onValueChange={setShowName} label="Show my name on card" /></View> : null}
         {name && report.topProject ? <View style={{ height: 1, backgroundColor: palette.border }} /> : null}
-        {report.topProject ? <View style={{ minHeight: 57, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}><View style={{ flex: 1 }}><Text style={{ fontFamily: "Outfit", fontSize: 14, fontWeight: "700", color: palette.text }}>Show top project</Text><Text numberOfLines={1} style={{ fontFamily: "Nunito", fontSize: 11, color: palette.muted }}>Hidden by default for privacy</Text></View><Switch value={showProject} onValueChange={setShowProject} accessibilityLabel="Show top project on card" trackColor={{ true: palette.primary }} /></View> : null}
+        {report.topProject ? <View style={{ minHeight: 57, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}><View style={{ flex: 1 }}><Text style={{ fontFamily: "Outfit", fontSize: 14, fontWeight: "700", color: palette.text }}>Show top project</Text><Text numberOfLines={1} style={{ fontFamily: "Nunito", fontSize: 11, color: palette.muted }}>Hidden by default for privacy</Text></View><ShareCardSwitch value={showProject} onValueChange={setShowProject} label="Show top project on card" /></View> : null}
       </View>
       <Text style={{ fontFamily: "Nunito", fontSize: 12, color: palette.muted, lineHeight: 18 }}>Based on saved WakaTime activity from the dates shown on the card. The share sheet lets you post or save the PNG.</Text>
       <ScaleButton label="Generate and share PNG" disabled={sharing} onPress={() => void shareCard()} style={{ minHeight: 54, borderRadius: 18, backgroundColor: palette.primary, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9 }}><ShareNetworkIcon size={20} color={palette.onPrimary} weight="bold" /><Text style={{ fontFamily: "Outfit", color: palette.onPrimary, fontWeight: "800", fontSize: 16 }}>{sharing ? "Preparing image…" : "Share PNG"}</Text></ScaleButton>

@@ -13,6 +13,7 @@ import { HapticPreset } from "../../constants/haptics";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
 import { AnimatedHeightBar, AnimatedProgressBar, AnimatedProgressRing } from "../ui/animated-progress";
+import { BarChartGuides } from "../ui/bar-chart-guides";
 import { SegmentedPicker } from "../ui/segmented-picker";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 import { buildAnalytics, type AnalyticsRange, type CadenceBucket } from "./analytics-data";
@@ -71,7 +72,7 @@ function DigestCard({ data, range, palette }: { data: ReturnType<typeof buildAna
 
 function CadenceBar({ bucket, height, selected, palette, onPress }: { bucket: CadenceBucket; height: number; selected: boolean; palette: Palette; onPress: () => void }) {
   return (
-    <ScaleButton label={`${bucket.dateLabel}, ${formatDuration(bucket.seconds)}`} onPress={onPress} wrapperStyle={{ flex: 1 }} style={{ height: 132, justifyContent: "flex-end", alignItems: "center", paddingHorizontal: 2 }}>
+    <ScaleButton label={`${bucket.dateLabel}, ${formatDuration(bucket.seconds)}`} onPress={onPress} wrapperStyle={{ flex: 1 }} style={{ height: 122, justifyContent: "flex-end", alignItems: "center", paddingHorizontal: 2 }}>
       <AnimatedHeightBar height={height} color={selected ? palette.homeAmber : bucket.seconds > 0 ? palette.primary : palette.homeSubtle} style={{ width: "100%", maxWidth: 20, minHeight: 6, borderRadius: 6 }} />
     </ScaleButton>
   );
@@ -91,11 +92,14 @@ function CadenceCard({ data, selectedIndex, onSelect, palette }: { data: ReturnT
         <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flex: 1 }}><View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: palette.homeAmber }} /><Text numberOfLines={1} style={{ color: palette.text, fontSize: 12, fontWeight: "700" }}>{selected?.dateLabel ?? "No saved activity"}</Text></View>
         <Text selectable style={{ color: palette.primary, fontSize: 12, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{formatDuration(selected?.seconds ?? 0)}</Text>
       </View>
-      <View style={{ height: 134, flexDirection: "row", alignItems: "flex-end", gap: 3 }}>
-        {data.buckets.map((bucket, index) => <CadenceBar key={index} bucket={bucket} height={Math.max(6, Math.round(bucket.seconds / max * 122))} selected={index === selectedIndex} palette={palette} onPress={() => onSelect(index)} />)}
+      <View style={{ height: 134 }}>
+        <BarChartGuides maximumSeconds={max} top={0} height={122} left={47} lineColor={palette.border} labelColor={palette.muted} />
+        <View style={{ position: "absolute", top: 0, left: 47, right: 0, height: 122, flexDirection: "row", alignItems: "flex-end", gap: 3 }}>
+          {data.buckets.map((bucket, index) => <CadenceBar key={bucket.key} bucket={bucket} height={Math.max(6, Math.round(bucket.seconds / max * 122))} selected={index === selectedIndex} palette={palette} onPress={() => onSelect(index)} />)}
+        </View>
       </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 4 }}>
-        {data.buckets.map((bucket, index) => <Text key={bucket.key} numberOfLines={1} style={{ flex: 1, textAlign: "center", color: index === selectedIndex ? palette.primary : palette.muted, fontSize: data.buckets.length > 7 ? 9 : 10, fontWeight: index === selectedIndex ? "800" : "500" }}>{data.buckets.length > 7 && index % 2 === 1 && index !== selectedIndex ? "" : bucket.label}</Text>)}
+        <View style={{ width: 47 }} />{data.buckets.map((bucket, index) => <Text key={bucket.key} numberOfLines={1} style={{ flex: 1, textAlign: "center", color: index === selectedIndex ? palette.primary : palette.muted, fontSize: data.buckets.length > 7 ? 9 : 10, fontWeight: index === selectedIndex ? "800" : "500" }}>{data.buckets.length > 7 && index % 2 === 1 && index !== selectedIndex ? "" : bucket.label}</Text>)}
       </View>
       <View style={{ borderRadius: 13, padding: 12, backgroundColor: palette.homeSubtle }}>
         <Text style={{ color: palette.muted, fontSize: 12, lineHeight: 18 }}>{data.total > 0 ? `You logged ${formatDuration(data.total)} across ${data.activeDays} active ${data.activeDays === 1 ? "day" : "days"}. Your busiest period reached ${formatDuration(peak)}.` : "No coding activity is saved for this range yet."}</Text>

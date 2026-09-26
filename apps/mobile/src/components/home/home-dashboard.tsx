@@ -13,6 +13,7 @@ import { LoadingIndicator } from "../ui/loading-indicator";
 import { RefreshIndicator } from "../ui/refresh-indicator";
 import { BrandMark } from "../ui/brand-mark";
 import { AnimatedHeightBar, AnimatedProgressBar, AnimatedProgressRing } from "../ui/animated-progress";
+import { BarChartGuides } from "../ui/bar-chart-guides";
 import { useDashboard } from "../../data/dashboard-context";
 import { runManualRefresh, type RefreshOutcome } from "../../haptic-actions";
 import { useLeaderboards } from "../../data/leaderboard-context";
@@ -161,18 +162,22 @@ function WeeklyCard({ days, total, palette }: { days: Day[]; total: number; pale
     <SurfaceCard palette={palette}>
       <SectionTitle title="This Week" kicker="Activity distribution" trailing={<ChevronLink href="/(tabs)/(insights)" label="Analytics" color={palette.primary} fontSize={12} />} palette={palette} />
       {android ? <Text style={{ color: palette.muted, fontSize: 12, marginTop: -14 }}>{formatDuration(total)} total · Active day average {formatDuration(activeDays ? total / activeDays : 0)}</Text> : null}
-      <View style={{ height: 140, flexDirection: "row", alignItems: "flex-end", gap: 8, paddingTop: 10 }}>
+      <View style={{ height: 132 }}>
+        <BarChartGuides maximumSeconds={max} top={12} height={82} left={47} lineColor={palette.border} labelColor={palette.muted} />
+        <View style={{ position: "absolute", top: 12, left: 47, right: 0, height: 82, flexDirection: "row", alignItems: "flex-end", gap: 8 }}>
         {days.map((day, index) => {
           const today = index === days.length - 1;
           const peakDay = day.seconds > 0 && day.seconds === peak && !today;
           const color = peakDay ? palette.homeAmber : today ? palette.homeHero : day.seconds > 0 && android ? palette.primary : palette.track;
-          const height = Math.max(8, Math.round((day.seconds / max) * 91));
-          return <View key={day.key} style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", gap: 7 }}>
-            {!android ? <Text style={{ color: today ? palette.primary : palette.muted, fontSize: 10 }}>{day.seconds ? `${(day.seconds / 3600).toFixed(1)}h` : "–"}</Text> : null}
+          const height = Math.max(6, Math.round((day.seconds / max) * 82));
+          return <View key={day.key} style={{ flex: 1, alignItems: "center", justifyContent: "flex-end" }}>
             <AnimatedHeightBar height={height} color={color} accessibilityLabel={`${day.label}: ${formatDuration(day.seconds)}`} style={{ width: "100%", maxWidth: 34, borderRadius: 999 }} />
-            <Text style={{ color: today ? palette.primary : palette.muted, fontSize: 11, fontWeight: today ? "800" : "600" }}>{day.label}</Text>
           </View>;
         })}
+        </View>
+        <View style={{ position: "absolute", top: 103, left: 47, right: 0, flexDirection: "row", gap: 8 }}>
+          {days.map((day, index) => <Text key={day.key} style={{ flex: 1, textAlign: "center", color: index === days.length - 1 ? palette.primary : palette.muted, fontSize: 11, fontWeight: index === days.length - 1 ? "800" : "600" }}>{day.label}</Text>)}
+        </View>
       </View>
       {!android ? <View style={{ backgroundColor: palette.homeSubtle, borderRadius: 13, padding: 12 }}><Text style={{ color: palette.muted, fontSize: 12, lineHeight: 17 }}><Text style={{ color: palette.text, fontWeight: "800" }}>{formatDuration(total)}</Text> across {activeDays} active {activeDays === 1 ? "day" : "days"} this week.</Text></View> : null}
       <ChevronLink href="/share/coding-week" label="Create share card" color={palette.primary} fontSize={13} style={{ alignSelf: "flex-end", paddingVertical: 8 }} />
