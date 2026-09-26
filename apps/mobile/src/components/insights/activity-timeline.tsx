@@ -1,5 +1,6 @@
 import { Text } from "../ui/app-text";
 import { formatDuration, goalProgress, localDateKey, type Breakdown, type DailySummary } from "@wakaboard/core";
+import { BottomSheetModal, BottomSheetView } from "@expo/ui/community/bottom-sheet";
 import { router } from "expo-router";
 import { CalendarBlankIcon } from "phosphor-react-native/src/icons/CalendarBlank";
 import { CaretDownIcon } from "phosphor-react-native/src/icons/CaretDown";
@@ -7,9 +8,9 @@ import { CaretLeftIcon } from "phosphor-react-native/src/icons/CaretLeft";
 import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { LockKeyIcon } from "phosphor-react-native/src/icons/LockKey";
 import { ShareNetworkIcon } from "phosphor-react-native/src/icons/ShareNetwork";
-import { useMemo, useRef, useState } from "react";
-import { Alert, FlatList, Modal, Pressable, RefreshControl, ScrollView, Share, View } from "react-native";
-import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, FlatList, RefreshControl, ScrollView, Share, View } from "react-native";
+import Animated, { Easing, FadeIn, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboard } from "../../data/dashboard-context";
 import { HapticPreset } from "../../constants/haptics";
@@ -22,6 +23,7 @@ import { AnimatedProgressBar, AnimatedProgressRing } from "../ui/animated-progre
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 
 type Palette = ReturnType<typeof usePalette>;
+const shareSlots = ["first", "second", "third", "fourth"] as const;
 
 function dateFromKey(key: string): Date {
   return new Date(`${key}T12:00:00`);
@@ -54,27 +56,44 @@ function DayPicker({ visible, dates, selectedKey, todayKey, onSelect, onClose, p
   onClose: () => void;
   palette: Palette;
 }) {
+  const sheetRef = useRef<BottomSheetModal>(null);
   const listRef = useRef<FlatList<string>>(null);
-  return <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} onShow={() => listRef.current?.scrollToOffset({ offset: 0, animated: false })}>
-    <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: palette.modalBackdrop }}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Close date picker" onPress={onClose} style={{ flex: 1 }} />
-      <View style={{ maxHeight: "70%", borderTopLeftRadius: 28, borderTopRightRadius: 28, backgroundColor: palette.background, paddingTop: 20, paddingHorizontal: 18, paddingBottom: 20 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 15 }}>
-          <Text accessibilityRole="header" style={{ color: palette.text, fontSize: 19, fontWeight: "800" }}>Choose a saved day</Text>
-          <ScaleButton label="Close date picker" onPress={onClose} style={{ padding: 8 }}><Text style={{ color: palette.primary, fontSize: 14, fontWeight: "700" }}>Done</Text></ScaleButton>
-        </View>
-        <FlatList
-          ref={listRef}
-          data={dates}
-          keyExtractor={(key) => key}
-          contentInsetAdjustmentBehavior="automatic"
-          renderItem={({ item }) => <ScaleButton label={`Show ${dateLabel(item, todayKey)}`} selected={item === selectedKey} onPress={() => onSelect(item)} style={{ paddingHorizontal: 16, paddingVertical: 14, marginBottom: 8, borderRadius: 16, backgroundColor: item === selectedKey ? palette.homeMintSurface : palette.homeSurface }}>
-            <Text style={{ color: palette.text, fontSize: 14, fontWeight: item === selectedKey ? "800" : "600" }}>{dateLabel(item, todayKey)}</Text>
-          </ScaleButton>}
-        />
+  useEffect(() => {
+    if (visible) {
+      sheetRef.current?.present();
+      listRef.current?.scrollToOffset({ offset: 0, animated: false });
+    } else {
+      sheetRef.current?.dismiss();
+    }
+  }, [visible]);
+
+  return <BottomSheetModal ref={sheetRef} snapPoints={["50%", "90%"]} enablePanDownToClose onDismiss={onClose} backgroundStyle={{ backgroundColor: palette.background }}>
+    <BottomSheetView style={{ flex: 1, paddingTop: 20, paddingHorizontal: 18, paddingBottom: 20 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 15 }}>
+        <Text accessibilityRole="header" style={{ color: palette.text, fontSize: 19, fontWeight: "800" }}>Choose a saved day</Text>
+        <ScaleButton label="Close date picker" onPress={onClose} style={{ padding: 8 }}><Text style={{ color: palette.primary, fontSize: 14, fontWeight: "700" }}>Done</Text></ScaleButton>
       </View>
-    </View>
-  </Modal>;
+      <FlatList
+        ref={listRef}
+        style={{ flex: 1 }}
+        data={dates}
+        keyExtractor={(key) => key}
+        renderItem={({ item }) => <ScaleButton label={`Show ${dateLabel(item, todayKey)}`} selected={item === selectedKey} onPress={() => onSelect(item)} style={{ paddingHorizontal: 16, paddingVertical: 14, marginBottom: 8, borderRadius: 16, backgroundColor: item === selectedKey ? palette.homeMintSurface : palette.homeSurface }}>
+          <Text style={{ color: palette.text, fontSize: 14, fontWeight: item === selectedKey ? "800" : "600" }}>{dateLabel(item, todayKey)}</Text>
+        </ScaleButton>}
+      />
+    </BottomSheetView>
+  </BottomSheetModal>;
+}
+
+function ProjectShareSegment({ share, color }: { share: number; color: string }) {
+  const reducedMotion = useReducedMotion();
+  const width = useSharedValue(share);
+  useEffect(() => {
+    width.value = reducedMotion ? share : withTiming(share, { duration: 360, easing: Easing.out(Easing.cubic) });
+  }, [reducedMotion, share, width]);
+  const style = useAnimatedStyle(() => ({ width: `${Math.max(0, Math.min(100, width.value * 100))}%` }));
+  return <Animated.View style={[{ height: 8, backgroundColor: color }, style]} />;
 }
 
 function DayHero({ summary, goalSeconds, palette }: { summary: DailySummary | undefined; goalSeconds: number; palette: Palette }) {
@@ -103,7 +122,7 @@ function DayHero({ summary, goalSeconds, palette }: { summary: DailySummary | un
     </View>
     <View style={{ gap: 8 }}>
       <View style={{ height: 8, flexDirection: "row", borderRadius: 4, overflow: "hidden", backgroundColor: palette.homeHeroTrack }}>
-        {projects.slice(0, 4).map((project, index) => <View key={project.name} style={{ width: `${projectTotal > 0 ? project.seconds / projectTotal * 100 : 0}%`, backgroundColor: colors[index] }} />)}
+        {shareSlots.map((slot, index) => <ProjectShareSegment key={slot} share={projectTotal > 0 ? (projects[index]?.seconds ?? 0) / projectTotal : 0} color={colors[index]} />)}
       </View>
       <Text style={{ color: palette.homeHeroMuted, fontSize: 10 }}>{projects.length ? "Project share of recorded coding time" : "Project activity will appear after a sync"}</Text>
     </View>
