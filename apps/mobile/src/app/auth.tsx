@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Linking, Pressable, ScrollView, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthDoodleBackground } from "../components/auth/auth-doodle-background";
+import { WakaTimeMark } from "../components/auth/wakatime-mark";
 import { ActionButton } from "../components/ui/action-button";
 import { BrandMark } from "../components/ui/brand-mark";
 import { HapticPreset } from "../constants/haptics";
@@ -112,6 +113,7 @@ export default function AuthScreen() {
           {wakatimeConnectionAvailable ? (
             <ActionButton
               label={busy ? "Connecting…" : useApiKey ? "Connect with API key" : "Continue with WakaTime"}
+              leading={!useApiKey ? <WakaTimeMark color={palette.onPrimary} /> : undefined}
               disabled={busy || (useApiKey && !apiKey.trim())}
               onPress={() => void (useApiKey ? connectWithApiKey() : connectWithWakaTime())}
             />
