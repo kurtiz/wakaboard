@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Image } from "expo-image";
 import * as SecureStore from "expo-secure-store";
-import { authClient, wakatimeConnectionAvailable } from "./wakatime-client";
+import { getConnectedUser, getConnectionMode, wakatimeConnectionAvailable } from "./wakatime-client";
 import { fetchLeaderboard, fetchMemberProfile, type Leaderboard, type LeaderboardScope, type MemberProfile } from "./leaderboards";
 import { loadCachedLeaderboards, loadCachedMemberProfile, saveCachedLeaderboard, saveCachedMemberProfile } from "./dashboard-store";
 
@@ -41,12 +41,12 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const { data: session } = await authClient.getSession();
-      if (!session?.user) throw new Error("Connect WakaTime to see the leaderboards.");
+      const user = await getConnectedUser();
+      if (!user) throw new Error("Connect WakaTime to see the leaderboards.");
       if (requestGeneration !== generation.current) return false;
-      if (session.user.image && !profileRef.current) showProfile({
-        id: session.user.id, name: session.user.name, username: null,
-        photo: session.user.image, bio: null, website: null, countryCode: null, location: null,
+      if (user.image && !profileRef.current) showProfile({
+        id: user.id, name: user.name, username: null,
+        photo: user.image, bio: null, website: null, countryCode: null, location: null,
       });
       const [globalResult, countryResult, profileResult] = await Promise.allSettled([
         fetchLeaderboard("global"),
@@ -56,7 +56,7 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
       if (requestGeneration !== generation.current) return false;
       const profile = profileResult.status === "fulfilled" ? profileResult.value : null;
       if (profile) showProfile(profile);
-      if (profile) void saveCachedMemberProfile(session.user.id, "current", profile).catch(() => {});
+      if (profile) void saveCachedMemberProfile(user.id, "current", profile).catch(() => {});
       if (profile?.photo) void Image.prefetch(profile.photo, "disk").catch(() => {});
       const next = { ...boardsRef.current };
       const successful = [globalResult, countryResult].filter((result) => result.status === "fulfilled");
@@ -73,8 +73,8 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
       const photos = [...new Set(successful.flatMap((result) => next[result.value.scope]?.leaders.map((leader) => leader.photo) ?? []).filter((photo): photo is string => !!photo))];
       if (photos.length) void Image.prefetch(photos, "disk").catch(() => {});
       await Promise.allSettled([
-        SecureStore.setItemAsync(CACHED_USER_KEY, session.user.id),
-        ...successful.map((result) => saveCachedLeaderboard(session.user.id, next[result.value.scope]!)),
+        SecureStore.setItemAsync(CACHED_USER_KEY, user.id),
+        ...successful.map((result) => saveCachedLeaderboard(user.id, next[result.value.scope]!)),
       ]);
       const failure = [globalResult, countryResult].find((result) => result.status === "rejected");
       if (failure?.status === "rejected") {
@@ -102,7 +102,7 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
         if (profile.status === "fulfilled") showProfile(profile.value);
       }
       if (!active) return;
-      if (wakatimeConnectionAvailable) await refresh();
+      if (wakatimeConnectionAvailable && await getConnectionMode()) await refresh();
     }).catch(() => {});
     return () => { active = false; };
   }, [refresh, showBoards, showProfile]);

@@ -1,11 +1,11 @@
-import { Text } from "../ui/app-text";
+import { Text } from "./app-text";
 import { Pressable } from "react-native";
 import Animated from "react-native-reanimated";
 import { usePalette } from "../../theme";
 import { usePressScale } from "../ui/use-press-scale.android";
-import type { OnboardingButtonProps } from "./onboarding-button.types";
+import type { ActionButtonProps } from "./action-button.types";
 
-export function OnboardingButton({ label, onPress, disabled = false, secondary = false, compact = false, trailing }: OnboardingButtonProps) {
+export function ActionButton({ label, onPress, disabled = false, secondary = false, compact = false, trailing }: ActionButtonProps) {
   const palette = usePalette();
   const press = usePressScale(0.96);
   return <Animated.View style={[{ borderRadius: 14, overflow: "hidden", width: compact ? undefined : "100%" }, press.style]}>

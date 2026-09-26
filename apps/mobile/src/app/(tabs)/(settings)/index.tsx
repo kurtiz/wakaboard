@@ -16,6 +16,7 @@ import { Alert, Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../../../components/navigation/android-page-header";
 import { SettingsButton, SettingsCard } from "../../../components/settings/settings-card";
+import { SignOutAlert } from "../../../components/settings/sign-out-alert";
 import { SyncSwitch } from "../../../components/settings/sync-switch";
 import { ScaleButton } from "../../../components/ui/scale-button";
 import { SegmentedPicker } from "../../../components/ui/segmented-picker";
@@ -25,7 +26,7 @@ import { setAccentChoice, setThemeMode, useAppearancePreferences, type AccentCho
 import { useDashboard } from "../../../data/dashboard-context";
 import { loadOfflineStats } from "../../../data/dashboard-store";
 import { useLeaderboards } from "../../../data/leaderboard-context";
-import { authClient, wakatimeConnectionAvailable } from "../../../data/wakatime-client";
+import { authClient, disconnectWakaTime, getConnectedUser, getConnectionMode, type ConnectionMode, wakatimeConnectionAvailable } from "../../../data/wakatime-client";
 import { isAutoSyncEnabled, setAutoSyncEnabled } from "../../../data/offline-preferences";
 import { useFontChoice } from "../../../font-choice";
 import { runManualRefresh } from "../../../haptic-actions";
@@ -42,7 +43,9 @@ export default function SettingsScreen() {
   const [saving, setSaving] = useState(false);
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
   const [accountName, setAccountName] = useState<string | null>(null);
+  const [connectionMode, setConnectionMode] = useState<ConnectionMode | null>(null);
   const [accountBusy, setAccountBusy] = useState(false);
+  const [signOutAlertVisible, setSignOutAlertVisible] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
   const [goalError, setGoalError] = useState<string | null>(null);
   const [appearanceError, setAppearanceError] = useState<string | null>(null);
@@ -62,8 +65,8 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     if (wakatimeConnectionAvailable) {
-      void authClient.getSession()
-        .then(({ data }) => { setAccountEmail(data?.user.email ?? null); setAccountName(data?.user.name ?? null); })
+      void Promise.all([getConnectionMode(), getConnectedUser()])
+        .then(([mode, user]) => { setConnectionMode(mode); setAccountEmail(user?.email ?? null); setAccountName(user?.name ?? null); })
         .catch(() => { setAccountEmail(null); setAccountName(null); });
     }
   }, []);
@@ -83,6 +86,7 @@ export default function SettingsScreen() {
       const { data } = await authClient.getSession();
       setAccountEmail(data?.user.email ?? null);
       setAccountName(data?.user.name ?? null);
+      if (data?.user) setConnectionMode("oauth");
       if (data?.user) await Promise.all([syncWakaTime(), refreshLeaderboards()]);
       if (data?.user) void HapticPreset.confirm();
     } catch (error) {
@@ -97,12 +101,12 @@ export default function SettingsScreen() {
     setAccountBusy(true);
     setAccountError(null);
     try {
-      const { error } = await authClient.signOut();
-      if (error) throw new Error(error.message);
+      await disconnectWakaTime();
       await clearWakaTime();
       clearLeaderboards();
       setAccountEmail(null);
       setAccountName(null);
+      setConnectionMode(null);
       void HapticPreset.confirm();
       router.replace("/auth");
     } catch (error) {
@@ -215,12 +219,12 @@ export default function SettingsScreen() {
             {currentProfile?.photo ? <Image source={{ uri: currentProfile.photo }} cachePolicy="memory-disk" contentFit="cover" style={{ width: 48, height: 48 }} accessibilityLabel={`${profileName}'s profile photo`} /> : <AppText style={{ color: palette.primary, fontSize: 17, fontWeight: "800" }}>{initials}</AppText>}
           </View>
           <View style={{ flex: 1, gap: 3 }}>
-            <AppText numberOfLines={1} style={{ color: palette.text, fontSize: 17, fontWeight: "800" }}>{accountEmail ? profileName : "WakaTime account"}</AppText>
-            <AppText numberOfLines={1} selectable style={{ color: palette.muted, fontSize: 12 }}>{accountEmail ?? (wakatimeConnectionAvailable ? "Connect to sync coding activity" : "Connection unavailable")}</AppText>
+            <AppText numberOfLines={1} style={{ color: palette.text, fontSize: 17, fontWeight: "800" }}>{connectionMode ? profileName : "WakaTime account"}</AppText>
+            <AppText numberOfLines={1} selectable style={{ color: palette.muted, fontSize: 12 }}>{connectionMode === "api-key" ? "API key saved on this device" : accountEmail ?? (wakatimeConnectionAvailable ? "Connect to sync coding activity" : "Connection unavailable")}</AppText>
           </View>
-          {accountEmail && <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: palette.privacyPanel, alignItems: "center", justifyContent: "center" }}><CheckIcon size={17} weight="bold" color={palette.primary} /></View>}
+          {connectionMode && <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: palette.privacyPanel, alignItems: "center", justifyContent: "center" }}><CheckIcon size={17} weight="bold" color={palette.primary} /></View>}
         </View>
-        {wakatimeConnectionAvailable && (accountEmail
+        {wakatimeConnectionAvailable && (connectionMode
           ? <View style={{ minHeight: 34, borderRadius: 11, backgroundColor: palette.homeSurface, justifyContent: "center", paddingHorizontal: 11 }}><AppText style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>Connected to WakaTime</AppText></View>
           : <SettingsButton label={accountBusy ? "Connecting…" : "Connect WakaTime"} disabled={accountBusy} onPress={() => void connect()} />)}
         {accountError && <AppText accessibilityRole="alert" style={{ color: palette.error, fontSize: 12 }}>{accountError}</AppText>}
@@ -302,7 +306,7 @@ export default function SettingsScreen() {
           </View>
           <SyncSwitch value={autoSync} disabled={preferenceBusy} onValueChange={(enabled) => void changeAutoSync(enabled)} />
         </View>}
-        {accountEmail && <SettingsButton label={syncing ? "Syncing…" : "Sync now"} disabled={syncing || accountBusy} onPress={() => void runManualRefresh(syncWakaTime)} icon={<ArrowsClockwiseIcon size={18} weight="bold" color={palette.onPrimary} />} />}
+        {connectionMode && <SettingsButton label={syncing ? "Syncing…" : "Sync now"} disabled={syncing || accountBusy} onPress={() => void runManualRefresh(syncWakaTime)} icon={<ArrowsClockwiseIcon size={18} weight="bold" color={palette.onPrimary} />} />}
         {savedDays > 0 && <ScaleButton label="Remove saved activity" disabled={clearingOffline || syncing} onPress={confirmClearOffline} glass="clear" style={{ minHeight: 44, borderRadius: 22, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 }}><TrashIcon size={16} color={palette.error} /><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "700" }}>{clearingOffline ? "Removing…" : "Remove saved activity"}</AppText></ScaleButton>}
         {hasSample && <ScaleButton label="Remove sample activity" onPress={() => void removeSample()} glass="clear" style={{ minHeight: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.muted, fontSize: 12, fontWeight: "700" }}>Remove sample activity</AppText></ScaleButton>}
         {(dataError || syncError) && <AppText accessibilityRole="alert" style={{ color: palette.error, fontSize: 12 }}>{dataError ?? syncError}</AppText>}
@@ -315,7 +319,10 @@ export default function SettingsScreen() {
       <View style={{ backgroundColor: palette.card, borderColor: palette.border, borderWidth: 1, borderRadius: 24, borderCurve: "continuous", padding: 18, gap: 12 }}>
         <AppText style={{ color: palette.primary, fontSize: 17, fontWeight: "800" }}>WakaBoard</AppText>
         <View style={{ backgroundColor: palette.homeSurface, borderRadius: 11, paddingHorizontal: 12, minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><AppText style={{ color: palette.muted, fontSize: 12 }}>Activity source</AppText><AppText style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>WakaTime</AppText></View>
-        {accountEmail && <ScaleButton label="Sign out of WakaTime" disabled={accountBusy || syncing} onPress={() => void signOut()} glass="clear" style={{ minHeight: 44, borderRadius: 22, backgroundColor: palette.homeSubtle, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "800" }}>Sign out</AppText></ScaleButton>}
+        {connectionMode && <>
+          <ScaleButton label="Disconnect WakaTime" disabled={accountBusy || syncing} onPress={() => setSignOutAlertVisible(true)} glass="clear" style={{ minHeight: 44, borderRadius: 22, backgroundColor: palette.homeSubtle, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "800" }}>Disconnect</AppText></ScaleButton>
+          <SignOutAlert visible={signOutAlertVisible} onCancel={() => setSignOutAlertVisible(false)} onConfirm={() => { setSignOutAlertVisible(false); void signOut(); }} />
+        </>}
       </View>
     </View>
   </Animated.ScrollView>;

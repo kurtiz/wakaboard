@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDashboard } from "../../data/dashboard-context";
 import { HapticPreset } from "../../constants/haptics";
 import { runManualRefresh, type RefreshOutcome } from "../../haptic-actions";
-import { authClient, wakatimeConnectionAvailable } from "../../data/wakatime-client";
+import { getConnectionMode, wakatimeConnectionAvailable } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
 import { RefreshIndicator } from "../ui/refresh-indicator";
@@ -200,7 +200,7 @@ export function ActivityTimeline() {
   }
 
   async function refreshActivity(): Promise<RefreshOutcome> {
-    if (wakatimeConnectionAvailable && await authClient.getCookie()) return syncWakaTime();
+    if (wakatimeConnectionAvailable && await getConnectionMode()) return syncWakaTime();
     await refresh();
     return "local";
   }

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type OnboardingButtonProps = {
+export type ActionButtonProps = {
   label: string;
   onPress: () => void;
   disabled?: boolean;

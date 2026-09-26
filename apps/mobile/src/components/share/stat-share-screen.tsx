@@ -9,7 +9,7 @@ import { captureRef } from "react-native-view-shot";
 import { useDashboard } from "../../data/dashboard-context";
 import { useLeaderboards } from "../../data/leaderboard-context";
 import { resolvedLeaderboardRank, type LeaderboardScope } from "../../data/leaderboards";
-import { authClient } from "../../data/wakatime-client";
+import { getConnectedUser } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
 import { buildAnalytics, type AnalyticsRange } from "../insights/analytics-data";
@@ -60,7 +60,7 @@ export function StatShareScreen({ kind }: { kind: Kind }) {
   const cardWidth = Math.min(screenWidth - 32, 420);
   const loading = kind === "leaderboard" ? boardLoading : dashboardLoading;
 
-  useEffect(() => { void authClient.getSession().then(({ data }) => setSessionName(data?.user.name ?? null)).catch(() => {}); }, []);
+  useEffect(() => { void getConnectedUser().then((user) => setSessionName(user?.name ?? null)).catch(() => {}); }, []);
   useEffect(() => {
     if (kind !== "leaderboard" || !board?.rank || boardWithStats?.currentUser || requestedLeaderboardStats.current) return;
     requestedLeaderboardStats.current = true;

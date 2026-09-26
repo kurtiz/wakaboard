@@ -1,4 +1,4 @@
-import { authClient } from "./wakatime-client";
+import { getWakaTimeAuthHeaders } from "./wakatime-client";
 
 export type LeaderboardScope = "country" | "global";
 
@@ -47,12 +47,11 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "");
 
 export async function fetchLeaderboard(scope: LeaderboardScope): Promise<Leaderboard> {
   if (!apiUrl) throw new Error("Connect WakaTime to see the leaderboards.");
-  const cookie = await authClient.getCookie();
-  if (!cookie) throw new Error("Connect WakaTime to see the leaderboards.");
+  const headers = await getWakaTimeAuthHeaders();
   const url = new URL("/api/leaderboards", apiUrl);
   url.searchParams.set("scope", scope);
-  const response = await fetch(url, { headers: { Cookie: cookie }, credentials: "omit" });
-  if (response.status === 401) throw new Error("Your WakaTime session expired. Sign in again.");
+  const response = await fetch(url, { headers, credentials: "omit" });
+  if (response.status === 401) throw new Error("WakaTime rejected this connection. Disconnect and sign in again.");
   if (!response.ok) throw new Error("The leaderboard could not be loaded. Try again later.");
   const board = await response.json() as Leaderboard;
   if (!Array.isArray(board.leaders) || board.scope !== scope) throw new Error("The leaderboard response was invalid.");
@@ -61,11 +60,10 @@ export async function fetchLeaderboard(scope: LeaderboardScope): Promise<Leaderb
 
 export async function fetchMemberProfile(id: string): Promise<MemberProfile> {
   if (!apiUrl) throw new Error("WakaTime connection is unavailable.");
-  const cookie = await authClient.getCookie();
-  if (!cookie) throw new Error("Sign in to see WakaTime profiles.");
+  const headers = await getWakaTimeAuthHeaders();
   const url = new URL("/api/profile", apiUrl);
   url.searchParams.set("id", id);
-  const response = await fetch(url, { headers: { Cookie: cookie }, credentials: "omit" });
+  const response = await fetch(url, { headers, credentials: "omit" });
   if (!response.ok) throw new Error("This WakaTime profile is unavailable.");
   const profile = await response.json() as MemberProfile;
   if (!profile.id || !profile.name) throw new Error("The WakaTime profile response was invalid.");

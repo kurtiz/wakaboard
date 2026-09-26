@@ -1,12 +1,12 @@
 # WakaBoard
 
 WakaBoard is an open source iOS and Android companion for [WakaTime](https://wakatime.com/). It turns coding activity
-into a mobile dashboard with daily goals, insights, leaderboards, and locally cached data. You can explore it with
-labeled sample activity before connecting an account.
+into a mobile dashboard with daily goals, insights, leaderboards, and locally cached data. Connect with WakaTime sign-in
+or a WakaTime API key to get started.
 
 The app uses Expo SDK 57, React Native, Expo Router, Expo UI, and Uniwind. A Cloudflare Worker handles WakaTime OAuth
-and API requests. Cloudflare D1 stores authentication records, while the mobile app caches downloaded activity in
-SQLite.
+and API requests. Cloudflare D1 stores OAuth records. An API key, when used, stays in Expo SecureStore on the device;
+the mobile app caches downloaded activity separately in SQLite.
 
 > **Status:** Active development. Native build verification, OAuth smoke testing, and some export work are still in
 > progress. See the [master plan](WakaTime_Mobile_Master_Plan.md) for product direction.
@@ -29,7 +29,7 @@ SQLite.
 
 ## Features
 
-- Explore the home dashboard and insights with sample activity, without signing in.
+- Open directly to a simple WakaTime connection screen.
 - Connect a WakaTime account and sync coding summaries, including project, language, and editor breakdowns.
 - Set a daily coding goal and review previously downloaded activity while offline.
 - View WakaTime leaderboards and member profiles when connected.
@@ -84,7 +84,7 @@ cloud build options.
 
 ## Deploy your own Worker
 
-Each installation should use its **own Cloudflare Worker, D1 database, and WakaTime OAuth app**. The public template in
+Each installation should use its **own Cloudflare Worker and D1 database**. WakaTime sign-in also needs a WakaTime OAuth app. The public template in
 `deploy/worker` contains no maintainer account, database ID, or production auth URL. The maintainer's existing
 `apps/worker/wrangler.jsonc` stays on their machine and is ignored by Git. Use the template for a new installation so
 you cannot target the maintainer's deployment.
@@ -108,10 +108,10 @@ import flow. The source repository must be public.
    HTTPS origin without a trailing slash.
 4. [Create a WakaTime OAuth app](#connect-wakatime) using that origin for its callback. Update the two WakaTime Worker
    secrets in Cloudflare if you used placeholders.
-5. Set `EXPO_PUBLIC_API_URL` in `apps/mobile/.env.local` to your Worker origin, restart Metro, and connect in the app's
-   Settings screen.
+5. Set `EXPO_PUBLIC_API_URL` in `apps/mobile/.env.local` to your Worker origin, restart Metro, and connect from the
+   app's first screen.
 
-The button provisions the backend; WakaTime still requires an OAuth app tied to the final callback URL. Keep secrets in
+The button provisions the backend; OAuth sign-in still requires an OAuth app tied to the final callback URL. Keep secrets in
 Cloudflare's secret settings, never in `wrangler.jsonc`, an Expo environment file, or a commit.
 
 ### Deploy from the command line
@@ -160,8 +160,13 @@ script uses the existing maintainer configuration.
    EXPO_PUBLIC_API_URL=https://<your-worker>.<your-subdomain>.workers.dev
    ```
 
-4. Restart Metro, open Settings, and connect WakaTime. After sign-in, the app downloads recent summaries and supports
+4. Restart Metro, open the app, and connect WakaTime. After sign-in, the app downloads recent summaries and supports
    later manual refreshes.
+
+You can instead choose **Use an API key** on the first screen and paste the key from your
+[WakaTime API key page](https://wakatime.com/api-key). The app checks it before saving it in Expo SecureStore. It is
+sent over HTTPS to your Worker for WakaTime requests, and the Worker does not store it. Disconnecting in Settings
+deletes it from the device. API key access requires an HTTPS Worker URL.
 
 If you use a custom Worker domain, use it consistently for the OAuth redirect and mobile API URL. A different host,
 path, or protocol will make WakaTime reject the redirect.
@@ -232,12 +237,12 @@ changing it.
 ## Architecture and data
 
 ```text
-WakaBoard mobile app ── OAuth / authenticated requests ──▶ Cloudflare Worker ──▶ WakaTime API
+WakaBoard mobile app ── OAuth or API key requests ──▶ Cloudflare Worker ──▶ WakaTime API
         │                                                   │
         └── local SQLite cache and preferences              └── D1 auth records
 ```
 
-The Worker stores authentication state in D1 and requests WakaTime data using the signed-in user's token. The mobile app
+The Worker stores OAuth authentication state in D1 and requests WakaTime data using an OAuth token or a device-held API key. The mobile app
 caches downloaded daily summaries locally, so previously synced activity stays visible offline. Sample activity is
 labeled and can be removed; a successful sync clears it. Settings can remove saved WakaTime activity from the device.
 WakaBoard is an independent companion and is not affiliated with WakaTime or Cloudflare.

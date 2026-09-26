@@ -14,17 +14,15 @@ import {
   clearSampleSummaries,
   clearWakaTimeSummaries,
   loadDashboard,
-  saveOnboardingComplete,
   saveGoalSeconds,
   saveSummary,
 } from "./dashboard-store";
-import { authClient, fetchWakaTimeSummaries, wakatimeConnectionAvailable } from "./wakatime-client";
+import { fetchWakaTimeSummaries, getConnectionMode, wakatimeConnectionAvailable } from "./wakatime-client";
 import { isAutoSyncEnabled } from "./offline-preferences";
 
 type DashboardState = {
   summaries: DailySummary[];
   goalSeconds: number;
-  onboardingComplete: boolean;
   loading: boolean;
   error: string | null;
   syncing: boolean;
@@ -39,7 +37,6 @@ type DashboardContextValue = DashboardState & {
   clearSample: () => Promise<void>;
   clearWakaTime: () => Promise<void>;
   setGoalHours: (hours: number) => Promise<void>;
-  completeOnboarding: () => Promise<void>;
   syncWakaTime: () => Promise<SyncOutcome>;
 };
 
@@ -50,7 +47,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DashboardState>({
     summaries: [],
     goalSeconds: 4 * 3600,
-    onboardingComplete: false,
     loading: true,
     error: null,
     syncing: false,
@@ -118,7 +114,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     void refresh().then(async () => {
       if (!wakatimeConnectionAvailable || !isAutoSyncEnabled()) return;
       try {
-        if (await authClient.getCookie()) await runSync(false);
+        if (await getConnectionMode()) await runSync(false);
       } catch {
         // Cached activity remains available when sign-in storage cannot be read.
       }
@@ -143,10 +139,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       },
       setGoalHours: async (hours) => {
         await saveGoalSeconds(Math.round(hours * 3600));
-        await refresh();
-      },
-      completeOnboarding: async () => {
-        await saveOnboardingComplete();
         await refresh();
       },
       syncWakaTime: () => runSync(true),

@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { LoadingIndicator } from "../../components/ui/loading-indicator";
 import { LeaderboardScopeProvider } from "../../components/leaderboard/leaderboard-scope";
 import { NativeTabNavigation } from "../../components/navigation/native-tabs";
-import { authClient } from "../../data/wakatime-client";
+import { getConnectionMode } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
 
 export default function TabLayout() {
@@ -13,8 +13,8 @@ export default function TabLayout() {
 
   useEffect(() => {
     let active = true;
-    void authClient.getCookie()
-      .then((cookie) => { if (active) setSignedIn(Boolean(cookie)); })
+    void getConnectionMode()
+      .then((mode) => { if (active) setSignedIn(Boolean(mode)); })
       .catch(() => { if (active) setSignedIn(false); });
     return () => { active = false; };
   }, []);

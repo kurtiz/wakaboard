@@ -70,40 +70,48 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname === "/health") return json({ status: "ok" });
-    if (!env.BETTER_AUTH_SECRET ||
-      !env.WAKATIME_CLIENT_ID || !env.WAKATIME_CLIENT_SECRET) {
-      return json({ error: "Authentication is not configured" }, 503);
+    const authConfigured = !!(env.BETTER_AUTH_SECRET && env.WAKATIME_CLIENT_ID && env.WAKATIME_CLIENT_SECRET);
+    if (url.pathname.startsWith("/api/auth/")) {
+      if (!authConfigured) return json({ error: "Authentication is not configured" }, 503);
+      return createAuth(env, url.origin).handler(request);
     }
-    const auth = createAuth(env, url.origin);
-    if (url.pathname.startsWith("/api/auth/")) return auth.handler(request);
     if (!(["/api/summaries", "/api/leaderboards", "/api/profile"].includes(url.pathname)) || request.method !== "GET") {
       return json({ error: "Not found" }, 404);
     }
 
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) return json({ error: "Sign in required" }, 401);
-
-    const account = await env.DB.prepare(
-      'SELECT id FROM account WHERE userId = ? AND providerId = ? LIMIT 1',
-    ).bind(session.user.id, "wakatime").first<{ id: string }>();
-    if (!account) return json({ error: "WakaTime account not linked" }, 409);
-
-    const tokens = await auth.api.getAccessToken({
-      body: { accountId: account.id },
-      headers: request.headers,
-    });
-    if (!tokens.accessToken) return json({ error: "WakaTime session expired" }, 401);
-
-    const headers = { Authorization: `Bearer ${tokens.accessToken}`, Accept: "application/json" };
+    const apiKey = request.headers.get("X-WakaTime-API-Key");
+    if (apiKey && (apiKey.length > 256 || /[\x00-\x1f\x7f]/.test(apiKey))) return json({ error: "Invalid API key" }, 400);
+    let sessionUserId: string | null = null;
+    let authorization: string;
+    if (apiKey) {
+      authorization = `Basic ${btoa(apiKey)}`;
+    } else {
+      if (!authConfigured) return json({ error: "Authentication is not configured" }, 503);
+      const auth = createAuth(env, url.origin);
+      const session = await auth.api.getSession({ headers: request.headers });
+      if (!session) return json({ error: "Sign in required" }, 401);
+      sessionUserId = session.user.id;
+      const account = await env.DB.prepare(
+        'SELECT id FROM account WHERE userId = ? AND providerId = ? LIMIT 1',
+      ).bind(session.user.id, "wakatime").first<{ id: string }>();
+      if (!account) return json({ error: "WakaTime account not linked" }, 409);
+      const tokens = await auth.api.getAccessToken({
+        body: { accountId: account.id },
+        headers: request.headers,
+      });
+      if (!tokens.accessToken) return json({ error: "WakaTime session expired" }, 401);
+      authorization = `Bearer ${tokens.accessToken}`;
+    }
+    const headers = { Authorization: authorization, Accept: "application/json" };
 
     if (url.pathname === "/api/profile") {
       const id = url.searchParams.get("id");
       if (!id || (id !== "current" && !/^[\w-]{1,80}$/.test(id))) return json({ error: "Invalid profile" }, 400);
       const response = await fetch(`https://wakatime.com/api/v1/users/${encodeURIComponent(id)}`, { headers });
-      if (!response.ok) return json({ error: "WakaTime profile is unavailable" }, response.status === 404 ? 404 : 502);
+      if (!response.ok) return json({ error: "WakaTime profile is unavailable" }, response.status === 401 || response.status === 403 ? 401 : response.status === 404 ? 404 : 502);
       const { data } = await response.json() as { data?: WakaTimeProfile };
       if (!data?.id) return json({ error: "Invalid WakaTime profile" }, 502);
-      const ownProfile = id === "current" || data.id === session.user.id;
+      const ownProfile = id === "current" || data.id === sessionUserId;
       return json({
         id: data.id,
         name: data.display_name || data.username || "Anonymous User",
@@ -123,7 +131,7 @@ export default {
       globalUrl.searchParams.set("page", "1");
       globalUrl.searchParams.set("board_type", "time");
       const globalResponse = await fetch(globalUrl, { headers });
-      if (!globalResponse.ok) return json({ error: "WakaTime leaderboard is unavailable" }, 502);
+      if (!globalResponse.ok) return json({ error: "WakaTime leaderboard is unavailable" }, globalResponse.status === 401 || globalResponse.status === 403 ? 401 : 502);
       const globalBoard = await globalResponse.json() as WakaTimeLeaders;
       if (!Array.isArray(globalBoard.data)) return json({ error: "Invalid WakaTime leaderboard" }, 502);
       const countryCode = globalBoard.current_user?.user?.city?.country_code?.toUpperCase() ?? null;
@@ -205,11 +213,11 @@ export default {
     upstream.searchParams.set("end", end);
     const response = await fetch(upstream, {
       headers: {
-        Authorization: `Bearer ${tokens.accessToken}`,
+        Authorization: authorization,
         Accept: "application/json",
       },
     });
-    if (!response.ok) return json({ error: "WakaTime is unavailable" }, 502);
+    if (!response.ok) return json({ error: "WakaTime is unavailable" }, response.status === 401 || response.status === 403 ? 401 : 502);
 
     const result = await response.json() as { data?: WakaTimeSummary[] };
     if (!Array.isArray(result.data)) return json({ error: "Invalid WakaTime response" }, 502);

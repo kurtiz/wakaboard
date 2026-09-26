@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { captureRef } from "react-native-view-shot";
 import { useDashboard } from "../../data/dashboard-context";
 import { useLeaderboards } from "../../data/leaderboard-context";
-import { authClient } from "../../data/wakatime-client";
+import { getConnectedUser } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
 import { ScaleButton } from "../ui/scale-button";
 import { CodingWeekArt, type CodingWeekStyle } from "./coding-week-art";
@@ -50,7 +50,7 @@ export function CodingWeekScreen() {
   const sampleOnly = !report && summaries.some((day) => day.source === "sample");
 
   useEffect(() => {
-    void authClient.getSession().then(({ data }) => setSessionName(data?.user.name ?? null)).catch(() => {});
+    void getConnectedUser().then((user) => setSessionName(user?.name ?? null)).catch(() => {});
   }, []);
 
   async function shareCard() {

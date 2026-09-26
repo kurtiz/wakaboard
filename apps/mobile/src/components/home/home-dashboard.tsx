@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Pressable, RefreshControl, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { OnboardingButton } from "../onboarding/onboarding-button";
+import { ActionButton } from "../ui/action-button";
 import { ChevronLink } from "../ui/chevron-link";
 import { LoadingIndicator } from "../ui/loading-indicator";
 import { RefreshIndicator } from "../ui/refresh-indicator";
@@ -19,7 +19,7 @@ import { BarChartGuides } from "../ui/bar-chart-guides";
 import { useDashboard } from "../../data/dashboard-context";
 import { runManualRefresh, type RefreshOutcome } from "../../haptic-actions";
 import { useLeaderboards } from "../../data/leaderboard-context";
-import { authClient, wakatimeConnectionAvailable } from "../../data/wakatime-client";
+import { getConnectedUser, getConnectionMode, wakatimeConnectionAvailable } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
 import { usePressScale } from "../ui/use-press-scale";
 import { MemberAvatar } from "../leaderboard/member-avatar";
@@ -274,11 +274,11 @@ export function HomeDashboard() {
   const streak = codingStreak(today, summaries);
 
   useEffect(() => {
-    void authClient.getSession().then(({ data }) => setName(data?.user.name?.split(" ")[0] ?? null)).catch(() => {});
+    void getConnectedUser().then((user) => setName(user?.name.split(" ")[0] ?? null)).catch(() => {});
   }, []);
 
   async function refreshActivity(): Promise<RefreshOutcome> {
-    if (wakatimeConnectionAvailable && await authClient.getCookie()) {
+    if (wakatimeConnectionAvailable && await getConnectionMode()) {
       const [activity, leaders] = await Promise.all([syncWakaTime(), refreshLeaderboards()]);
       return activity === "success" && !leaders ? "partial" : activity;
     }
@@ -309,7 +309,7 @@ export function HomeDashboard() {
       <AndroidLargeTitle title="Today" offset={offset} />
       <HomeHeader today={today} name={name} profile={currentProfile} palette={palette} />
       {syncError ? <Text accessibilityRole="alert" style={{ color: palette.error, fontSize: 13 }}>{syncError}</Text> : null}
-      {loading ? <LoadingIndicator color={palette.accent} style={{ paddingVertical: 65 }} /> : error ? <SurfaceCard palette={palette}><Text style={{ color: palette.text, fontWeight: "800" }}>Local data unavailable</Text><Text style={{ color: palette.muted }}>{error}</Text><OnboardingButton label="Try again" onPress={() => void refresh()} /></SurfaceCard> : summaries.length === 0 ? <SurfaceCard palette={palette}><SectionTitle title="Make your coding visible" palette={palette} /><Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>Your WakaTime activity will appear after your first sync. You can explore with sample data meanwhile.</Text><OnboardingButton label="Explore sample data" onPress={() => void addSample()} /></SurfaceCard> : <>
+      {loading ? <LoadingIndicator color={palette.accent} style={{ paddingVertical: 65 }} /> : error ? <SurfaceCard palette={palette}><Text style={{ color: palette.text, fontWeight: "800" }}>Local data unavailable</Text><Text style={{ color: palette.muted }}>{error}</Text><ActionButton label="Try again" onPress={() => void refresh()} /></SurfaceCard> : summaries.length === 0 ? <SurfaceCard palette={palette}><SectionTitle title="Make your coding visible" palette={palette} /><Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>Your WakaTime activity will appear after your first sync. You can explore with sample data meanwhile.</Text><ActionButton label="Explore sample data" onPress={() => void addSample()} /></SurfaceCard> : <>
         {sample ? <Text style={{ color: palette.primary, fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>SAMPLE ACTIVITY</Text> : null}
         <HeroCard total={total} goalSeconds={goalSeconds} progress={progress} streak={streak} dailyAverage={dailyAverage} palette={palette} />
         {!android ? <GoalBooster remaining={remaining} palette={palette} /> : null}

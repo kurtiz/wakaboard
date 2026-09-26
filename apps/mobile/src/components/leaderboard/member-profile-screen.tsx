@@ -9,7 +9,7 @@ import { useDashboard } from "../../data/dashboard-context";
 import { loadCachedMemberProfile, saveCachedMemberProfile } from "../../data/dashboard-store";
 import { useLeaderboards } from "../../data/leaderboard-context";
 import { fetchMemberProfile, type Leader, type MemberProfile } from "../../data/leaderboards";
-import { authClient } from "../../data/wakatime-client";
+import { getConnectedUser } from "../../data/wakatime-client";
 import { usePalette } from "../../theme";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../navigation/android-page-header";
 import { MemberAvatar } from "./member-avatar";
@@ -37,10 +37,10 @@ export function MemberProfileScreen() {
   useEffect(() => {
     let active = true;
     void (async () => {
-      const session = await authClient.getSession().catch(() => null);
-      const userId = session?.data?.user?.id ?? await SecureStore.getItemAsync("leaderboard_user_id").catch(() => null);
-      if (isCurrent && session?.data?.user && active) {
-        setProfile({ id: session.data.user.id, name: session.data.user.name, username: null, photo: session.data.user.image ?? null, bio: null, website: null, countryCode: boards.global?.countryCode ?? null, location: null });
+      const user = await getConnectedUser().catch(() => null);
+      const userId = user?.id ?? await SecureStore.getItemAsync("leaderboard_user_id").catch(() => null);
+      if (isCurrent && user && active) {
+        setProfile({ id: user.id, name: user.name, username: null, photo: user.image, bio: null, website: null, countryCode: boards.global?.countryCode ?? null, location: null });
       }
       if (userId) {
         const cached = await loadCachedMemberProfile(userId, id).catch(() => null);

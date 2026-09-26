@@ -2,9 +2,9 @@ import { Button, Host, HStack, Image, ProgressView, Text } from "@expo/ui/swift-
 import { buttonBorderShape, buttonStyle, controlSize, disabled as disabledModifier, frame, tint } from "@expo/ui/swift-ui/modifiers";
 import { isGlassEffectAPIAvailable } from "expo-glass-effect";
 import { usePalette } from "../../theme";
-import type { OnboardingButtonProps } from "./onboarding-button.types";
+import type { ActionButtonProps } from "./action-button.types";
 
-export function OnboardingButton({ label, onPress, disabled = false, secondary = false, compact = false, trailing }: OnboardingButtonProps) {
+export function ActionButton({ label, onPress, disabled = false, secondary = false, compact = false, trailing }: ActionButtonProps) {
   const palette = usePalette();
   const glass = isGlassEffectAPIAvailable();
   const height = compact ? 44 : secondary ? 48 : 54;
