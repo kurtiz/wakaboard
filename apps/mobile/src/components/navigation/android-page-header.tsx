@@ -1,5 +1,3 @@
-import { ProgressiveBlurView } from "expo-backdrop";
-import { requireOptionalNativeModule } from "expo";
 import { router } from "expo-router";
 import { ArrowLeftIcon } from "phosphor-react-native/src/icons/ArrowLeft";
 import { type ReactNode } from "react";
@@ -15,8 +13,6 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePalette } from "../../theme";
 import { Text } from "../ui/app-text";
-
-const nativeBlurAvailable = requireOptionalNativeModule("BlurView") != null;
 
 export function useAndroidPageScroll() {
   const offset = useSharedValue(0);
@@ -71,26 +67,9 @@ export function AndroidPageFrame({ title, offset, children, back = false }: {
         left: 0,
         right: 0,
         height: insets.top + 76,
+        opacity: 0,
+        backgroundColor: palette.background,
       }, barStyle]}>
-      {nativeBlurAvailable
-        ? <ProgressiveBlurView
-          edge="top" intensity={85} startOffset={0.3}
-          tintColor={`${palette.background}B3`}
-          fallbackColor={palette.background} style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        }}/>
-        : <View style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: palette.background,
-        }}/>}
       <View style={{
         height: insets.top + 56,
         paddingTop: insets.top,

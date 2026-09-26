@@ -154,7 +154,7 @@ export function ActivityTimeline() {
   const palette = usePalette();
   const { offset, onScroll } = useAndroidPageScroll();
   const insets = useSafeAreaInsets();
-  const { summaries, goalSeconds, syncing, syncWakaTime, refresh } = useDashboard();
+  const { summaries, goalSeconds, syncWakaTime, refresh } = useDashboard();
   const [pullRefreshing, setPullRefreshing] = useState(false);
   const todayKey = useMemo(() => localDateKey(new Date()), []);
   const [selectedKey, setSelectedKey] = useState(todayKey);
@@ -208,7 +208,7 @@ export function ActivityTimeline() {
       contentInsetAdjustmentBehavior="automatic"
       onScroll={process.env.EXPO_OS === "android" ? onScroll : undefined}
       scrollEventThrottle={16}
-      refreshControl={<RefreshControl refreshing={syncing || pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.primary} colors={process.env.EXPO_OS === "android" ? ["transparent"] : undefined} progressBackgroundColor={process.env.EXPO_OS === "android" ? "transparent" : undefined} progressViewOffset={process.env.EXPO_OS === "android" ? -100 : undefined} />}
+      refreshControl={<RefreshControl refreshing={pullRefreshing} onRefresh={onPullRefresh} tintColor={palette.primary} colors={process.env.EXPO_OS === "android" ? ["transparent"] : undefined} progressBackgroundColor={process.env.EXPO_OS === "android" ? "transparent" : undefined} progressViewOffset={process.env.EXPO_OS === "android" ? -100 : undefined} />}
       style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ gap: 17, paddingHorizontal: 16, paddingTop: 12, paddingBottom: Math.max(36, insets.bottom + 24) }}
     >
