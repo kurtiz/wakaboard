@@ -23,7 +23,7 @@ export function SegmentedPicker<T extends string | number>({ options, value, onC
         pickerStyle("segmented"),
         controlSize("large"),
         padding({ vertical: 4 }),
-        ...(supportsGlass ? [glassEffect({ glass: { variant: "regular", interactive: true }, shape: "roundedRectangle", cornerRadius: 16 })] : []),
+        ...(supportsGlass ? [glassEffect({ glass: { variant: "regular", interactive: true }, shape: "capsule" })] : []),
       ]}
     >
       {options.map((option) => <Text key={String(option.value)} modifiers={[tag(option.value)]}>{option.label}</Text>)}
