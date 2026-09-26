@@ -136,19 +136,23 @@ function Editorial({ report, scale, name, showName, showProject }: Omit<Props, "
 function Night({ report, scale, name, showName, showProject }: Omit<Props, "styleName" | "width"> & { scale: number }) {
   const hours = Math.floor(Math.round(report.totalSeconds / 60) / 60);
   const minutes = Math.round(report.totalSeconds / 60) % 60;
-  const hourDigits = String(hours).length;
-  const longHours = hourDigits >= 3;
-  const hourWordX = hourDigits === 1 ? 92 : hourDigits === 2 ? 143 : hourDigits === 3 ? 174 : 214;
+  const primaryValue = hours > 0 ? hours : minutes;
+  const primaryUnit = hours > 0 ? "hours" : "minutes";
+  const primaryDigits = String(primaryValue).length;
+  const longPrimary = primaryDigits >= 3;
+  const primaryUnitX = primaryDigits === 1 ? 92 : primaryDigits === 2 ? 143 : primaryDigits === 3 ? 174 : 214;
   return <>
     <View style={{ position: "absolute", left: 205 * scale, top: -64 * scale, width: 284 * scale, height: 284 * scale, borderWidth: Math.max(1, scale), borderColor: "#285646", borderRadius: 142 * scale, opacity: .55 }} />
     <View style={{ position: "absolute", left: 180 * scale, top: -89 * scale, width: 334 * scale, height: 334 * scale, borderWidth: Math.max(1, scale), borderColor: "#285646", borderRadius: 167 * scale, opacity: .45 }} />
     <Brand scale={scale} light />
     <PositionedText x={220} y={28} w={113} size={8} color="#BDD5C6" scale={scale} style={{ textAlign: "right" }}>{period(report).toUpperCase()}</PositionedText>
     <PositionedText x={27} y={65} w={260} size={10} color="#8EE4B4" scale={scale} style={{ letterSpacing: 1.2 * scale }}>MY CODING WEEK</PositionedText>
-    <PositionedText x={21} y={79} w={longHours ? 245 : 205} size={longHours ? 86 : 108} color={colors.white} scale={scale} weight="800" style={{ letterSpacing: -6 * scale }}>{String(hours)}</PositionedText>
-    <PositionedText x={hourWordX} y={longHours ? 133 : 139} w={longHours ? 118 : 150} size={longHours ? 24 : 30} color={colors.amber} scale={scale} font="Nunito" weight="800">hours</PositionedText>
-    <PositionedText x={28} y={197} w={60} size={29} color={colors.amber} scale={scale} weight="800">{String(minutes)}</PositionedText>
-    <PositionedText x={minutes < 10 ? 49 : 65} y={203} w={150} size={20} color={colors.white} scale={scale} font="Nunito" weight="800">minutes</PositionedText>
+    <PositionedText x={21} y={79} w={longPrimary ? 245 : 205} size={longPrimary ? 86 : 108} color={colors.white} scale={scale} weight="800" style={{ letterSpacing: -6 * scale }}>{String(primaryValue)}</PositionedText>
+    <PositionedText x={primaryUnitX} y={longPrimary ? 133 : 139} w={longPrimary ? 118 : 150} size={longPrimary ? 24 : 30} color={colors.amber} scale={scale} font="Nunito" weight="800">{primaryUnit}</PositionedText>
+    {hours > 0 && minutes > 0 ? <>
+      <PositionedText x={28} y={197} w={60} size={29} color={colors.amber} scale={scale} weight="800">{String(minutes)}</PositionedText>
+      <PositionedText x={minutes < 10 ? 49 : 65} y={203} w={150} size={20} color={colors.white} scale={scale} font="Nunito" weight="800">minutes</PositionedText>
+    </> : null}
     <PositionedText x={29} y={227} w={285} size={10} color="#B7D6C5" scale={scale}>{`${report.activeDays} active days across the last 7.`}</PositionedText>
     <View style={{ position: "absolute", left: 27 * scale, top: 253 * scale, width: 306 * scale, height: 97 * scale, backgroundColor: "#193D31", borderWidth: Math.max(1, scale), borderColor: "#3A6856", borderRadius: 11 * scale }} />
     <PositionedText x={37} y={263} w={130} size={8} color="#B7D6C5" scale={scale} style={{ letterSpacing: .8 * scale }}>DAILY RHYTHM</PositionedText>

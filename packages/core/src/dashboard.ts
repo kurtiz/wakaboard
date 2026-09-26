@@ -23,7 +23,8 @@ export function formatDuration(seconds: number): string {
   const minutes = Math.round(Math.max(0, seconds) / 60);
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-  return hours > 0 ? `${hours}h ${rest}m` : `${rest}m`;
+  if (hours === 0) return `${rest}m`;
+  return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`;
 }
 
 export function goalProgress(totalSeconds: number, goalSeconds: number): number {
