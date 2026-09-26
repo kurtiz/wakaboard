@@ -175,6 +175,7 @@ function WeeklyCard({ days, total, palette }: { days: Day[]; total: number; pale
         })}
       </View>
       {!android ? <View style={{ backgroundColor: palette.homeSubtle, borderRadius: 13, padding: 12 }}><Text style={{ color: palette.muted, fontSize: 12, lineHeight: 17 }}><Text style={{ color: palette.text, fontWeight: "800" }}>{formatDuration(total)}</Text> across {activeDays} active {activeDays === 1 ? "day" : "days"} this week.</Text></View> : null}
+      <ChevronLink href="/share/coding-week" label="Create share card" color={palette.primary} fontSize={13} style={{ alignSelf: "flex-end", paddingVertical: 8 }} />
     </SurfaceCard>
   );
 }

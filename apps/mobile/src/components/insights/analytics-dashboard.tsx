@@ -190,6 +190,10 @@ export function AnalyticsDashboard() {
       <BreakdownCard title="Active projects" rows={data.projects} palette={palette} />
       <BreakdownCard title="Languages" rows={data.languages} palette={palette} />
       <BreakdownCard title="Environments" rows={data.editors} palette={palette} />
+      <ScaleButton label="Create a coding week image" onPress={() => router.push("/share/coding-week")} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, padding: 16, minHeight: 70, borderRadius: 22, backgroundColor: palette.homeHero }}>
+        <View style={{ flex: 1, gap: 3 }}><Text style={{ color: palette.homeHeroText, fontSize: 15, fontWeight: "800" }}>Share your coding week</Text><Text style={{ color: palette.homeHeroMuted, fontSize: 11 }}>Choose one of three PNG card styles</Text></View>
+        <CaretRightIcon color={palette.homeHeroText} size={20} weight="bold" />
+      </ScaleButton>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 15, borderRadius: 22, backgroundColor: palette.homeSurface }}>
         <View style={{ width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeMintSurface }}><ChartLineUpIcon color={palette.primary} size={20} weight="bold" /></View>
         <View style={{ flex: 1, gap: 3 }}><Text style={{ color: palette.text, fontSize: 14, fontWeight: "800" }}>Your coding report</Text><Text style={{ color: palette.muted, fontSize: 11 }}>Share the summary for this range</Text></View>
