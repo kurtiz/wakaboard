@@ -66,7 +66,7 @@ export function AndroidPageFrame({ title, offset, children, back = false }: {
         top: 0,
         left: 0,
         right: 0,
-        height: insets.top + 76,
+        height: insets.top + 56,
         opacity: 0,
         backgroundColor: palette.background,
       }, barStyle]}>
