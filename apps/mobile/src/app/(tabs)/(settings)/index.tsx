@@ -221,7 +221,7 @@ export default function SettingsScreen() {
           {accountEmail && <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: palette.privacyPanel, alignItems: "center", justifyContent: "center" }}><CheckIcon size={17} weight="bold" color={palette.primary} /></View>}
         </View>
         {wakatimeConnectionAvailable && (accountEmail
-          ? <View style={{ minHeight: 34, borderRadius: 11, backgroundColor: palette.homeSurface, flexDirection: "row", alignItems: "center", paddingHorizontal: 11, gap: 7 }}><View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: palette.success }} /><AppText style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>Connected to WakaTime</AppText></View>
+          ? <View style={{ minHeight: 34, borderRadius: 11, backgroundColor: palette.homeSurface, justifyContent: "center", paddingHorizontal: 11 }}><AppText style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>Connected to WakaTime</AppText></View>
           : <SettingsButton label={accountBusy ? "Connecting…" : "Connect WakaTime"} disabled={accountBusy} onPress={() => void connect()} />)}
         {accountError && <AppText accessibilityRole="alert" style={{ color: palette.error, fontSize: 12 }}>{accountError}</AppText>}
       </View>
@@ -291,12 +291,9 @@ export default function SettingsScreen() {
           </View>
           <AppText style={{ color: palette.muted, fontSize: 11 }}>SQLite data on this device</AppText>
         </View>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: palette.homeSurface, borderRadius: 17, borderCurve: "continuous", padding: 14, gap: 12 }}>
-          <View style={{ flex: 1, gap: 3 }}>
-            <AppText selectable style={{ color: palette.text, fontSize: 16, fontWeight: "800" }}>{savedDays === 1 ? "1 recent day saved" : `${savedDays} recent days saved`}</AppText>
-            <AppText selectable style={{ color: palette.muted, fontSize: 12 }}>{latestSavedLabel ? `Latest: ${latestSavedLabel}` : "Sync to keep activity on this device"}</AppText>
-          </View>
-          <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: savedDays ? palette.success : palette.border }} />
+        <View style={{ backgroundColor: palette.homeSurface, borderRadius: 17, borderCurve: "continuous", padding: 14, gap: 3 }}>
+          <AppText selectable style={{ color: palette.text, fontSize: 16, fontWeight: "800" }}>{savedDays === 1 ? "1 recent day saved" : `${savedDays} recent days saved`}</AppText>
+          <AppText selectable style={{ color: palette.muted, fontSize: 12 }}>{latestSavedLabel ? `Latest: ${latestSavedLabel}` : "Sync to keep activity on this device"}</AppText>
         </View>
         {wakatimeConnectionAvailable && <View style={{ flexDirection: "row", alignItems: "center", minHeight: 52, gap: 12 }}>
           <View style={{ flex: 1, gap: 3 }}>

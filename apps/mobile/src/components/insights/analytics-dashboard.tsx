@@ -45,10 +45,7 @@ function DigestCard({ data, range, palette }: { data: ReturnType<typeof buildAna
   const consistency = data.activeDays / data.days;
   return (
     <View style={{ backgroundColor: palette.homeHero, borderRadius: 28, padding: 20, gap: 18, borderCurve: "continuous" }}>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-        <Text style={{ color: palette.homeHeroMuted, fontSize: 10, fontWeight: "800", letterSpacing: 1.1, flexShrink: 1 }}>TELEMETRY DIGEST · {range === "all" ? "ALL SAVED DAYS" : `LAST ${range} DAYS`}</Text>
-        <View style={{ paddingHorizontal: 9, paddingVertical: 5, borderRadius: 999, backgroundColor: palette.homeHeroChip }}><Text style={{ color: palette.homeHeroText, fontSize: 10, fontWeight: "700" }}>Saved locally</Text></View>
-      </View>
+      <Text style={{ color: palette.homeHeroMuted, fontSize: 10, fontWeight: "800", letterSpacing: 1.1 }}>TELEMETRY DIGEST · {range === "all" ? "ALL SAVED DAYS" : `LAST ${range} DAYS`}</Text>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
           <Text selectable numberOfLines={1} adjustsFontSizeToFit style={{ color: palette.homeHeroText, fontSize: 37, fontWeight: "800", fontVariant: ["tabular-nums"], letterSpacing: -1 }}>{formatDuration(data.total)}</Text>

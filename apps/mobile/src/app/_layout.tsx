@@ -10,7 +10,7 @@ import { HapticPreset } from "../constants/haptics";
 import { DashboardProvider } from "../data/dashboard-context";
 import { LeaderboardProvider } from "../data/leaderboard-context";
 import { FontProvider, useFontChoice } from "../font-choice";
-import { usePalette } from "../theme";
+import { PaletteProvider, usePalette } from "../theme";
 
 export default function Layout() {
   initializeAppearance();
@@ -18,8 +18,12 @@ export default function Layout() {
     Nunito: require("../../assets/fonts/Nunito.ttf"),
     Outfit: require("../../assets/fonts/Outfit.ttf"),
   });
-  const palette = usePalette();
   if (!fontsLoaded && !fontError) return null;
+  return <PaletteProvider><AppProviders /></PaletteProvider>;
+}
+
+function AppProviders() {
+  const palette = usePalette();
   return (
     <FontProvider>
       <DashboardProvider>

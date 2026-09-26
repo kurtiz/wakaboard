@@ -65,11 +65,10 @@ function SectionTitle({ title, kicker, trailing, palette }: { title: string; kic
   );
 }
 
-function HomeHeader({ today, name, profile, syncing, sample, hasActivity, palette }: { today: Date; name: string | null; profile: MemberProfile | null; syncing: boolean; sample: boolean; hasActivity: boolean; palette: Palette }) {
+function HomeHeader({ today, name, profile, palette }: { today: Date; name: string | null; profile: MemberProfile | null; palette: Palette }) {
   const profilePress = usePressScale();
   const hour = today.getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  const status = syncing ? "Syncing WakaTime" : sample ? "Previewing sample data" : hasActivity ? "Saved on this device" : "Ready to sync";
   return (
     <View style={{ gap: 19 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
@@ -91,10 +90,6 @@ function HomeHeader({ today, name, profile, syncing, sample, hasActivity, palett
           {greeting}{name ? `, ${name}` : ""}
         </Text>
         {android ? <Text style={{ color: palette.muted, fontSize: 14 }}>Your coding day at a glance.</Text> : null}
-        <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 7, borderRadius: 999, backgroundColor: palette.homeMintSurface, paddingHorizontal: 11, paddingVertical: 6, marginTop: 5 }}>
-          <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: palette.success }} />
-          <Text style={{ color: palette.primary, fontSize: 11, fontWeight: "700" }}>{status}</Text>
-        </View>
       </View>
     </View>
   );
@@ -303,7 +298,7 @@ export function HomeDashboard() {
       contentContainerStyle={{ gap: 16, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 38 }}
     >
       <AndroidLargeTitle title="Today" offset={offset} />
-      <HomeHeader today={today} name={name} profile={currentProfile} syncing={syncing} sample={sample} hasActivity={summaries.length > 0} palette={palette} />
+      <HomeHeader today={today} name={name} profile={currentProfile} palette={palette} />
       {syncError ? <Text accessibilityRole="alert" style={{ color: palette.error, fontSize: 13 }}>{syncError}</Text> : null}
       {loading ? <LoadingIndicator color={palette.accent} style={{ paddingVertical: 65 }} /> : error ? <SurfaceCard palette={palette}><Text style={{ color: palette.text, fontWeight: "800" }}>Local data unavailable</Text><Text style={{ color: palette.muted }}>{error}</Text><OnboardingButton label="Try again" onPress={() => void refresh()} /></SurfaceCard> : summaries.length === 0 ? <SurfaceCard palette={palette}><SectionTitle title="Make your coding visible" palette={palette} /><Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>Your WakaTime activity will appear after your first sync. You can explore with sample data meanwhile.</Text><OnboardingButton label="Explore sample data" onPress={() => void addSample()} /></SurfaceCard> : <>
         {sample ? <Text style={{ color: palette.primary, fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>SAMPLE ACTIVITY</Text> : null}

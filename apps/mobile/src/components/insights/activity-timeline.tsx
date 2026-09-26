@@ -233,13 +233,7 @@ export function ActivityTimeline() {
         <View style={{ flex: 1 }} />
         <ScaleButton label="Share this day's activity" disabled={!summary || summary.source !== "wakatime"} onPress={shareDay} glass="clear" style={{ width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: palette.homeSubtle }}><ShareNetworkIcon color={palette.primary} size={18} weight="bold" /></ScaleButton>
       </View>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-        <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 7, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999, backgroundColor: palette.homeMintSurface }}>
-          <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: palette.success }} />
-          <Text style={{ color: palette.primary, fontSize: 11, fontWeight: "700" }}>{summary?.source === "sample" ? "Previewing sample data" : summary ? "Saved on this device" : "No activity saved"}</Text>
-        </View>
-        <Text style={{ color: palette.muted, fontSize: 10, fontWeight: "800", letterSpacing: 1 }}>{summary ? "RECORDED" : "EMPTY DAY"}</Text>
-      </View>
+      {summary?.source === "sample" && <Text style={{ color: palette.primary, fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>SAMPLE ACTIVITY</Text>}
       <DayHero summary={summary} goalSeconds={goalSeconds} palette={palette} />
       {summary && projects.length ? <>
         <ScrollView ref={filterScroll} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>

@@ -45,10 +45,10 @@ export function AnimatedProgressBar({ value, color, height, style }: {
   style?: ViewStyle;
 }) {
   const progress = useProgress(value);
-  const animatedStyle = useAnimatedStyle(() => ({ width: `${Math.round(progress.value * 10000) / 100}%` }));
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: progress.value }] }));
 
   return <View style={[{ height, borderRadius: height / 2, overflow: "hidden" }, style]}>
-    <Animated.View style={[{ height, borderRadius: height / 2, backgroundColor: color }, animatedStyle]} />
+    <Animated.View style={[{ width: "100%", height, borderRadius: height / 2, backgroundColor: color, transformOrigin: "left center" }, animatedStyle]} />
   </View>;
 }
 
