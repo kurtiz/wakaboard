@@ -14,12 +14,12 @@ import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { MinusIcon } from "phosphor-react-native/src/icons/Minus";
 import { PlusIcon } from "phosphor-react-native/src/icons/Plus";
 import { useEffect, useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../../../components/navigation/android-page-header";
 import { SettingsButton, SettingsCard } from "../../../components/settings/settings-card";
-import { SignOutAlert } from "../../../components/settings/sign-out-alert";
 import { SyncSwitch } from "../../../components/settings/sync-switch";
+import { ConfirmationAlert } from "../../../components/ui/confirmation-alert";
 import { ScaleButton } from "../../../components/ui/scale-button";
 import { SegmentedPicker } from "../../../components/ui/segmented-picker";
 import { Text as AppText } from "../../../components/ui/app-text";
@@ -47,7 +47,7 @@ export default function SettingsScreen() {
   const [accountName, setAccountName] = useState<string | null>(null);
   const [connectionMode, setConnectionMode] = useState<ConnectionMode | null>(null);
   const [accountBusy, setAccountBusy] = useState(false);
-  const [signOutAlertVisible, setSignOutAlertVisible] = useState(false);
+  const [pendingConfirmation, setPendingConfirmation] = useState<"remove-saved" | "remove-sample" | "disconnect" | null>(null);
   const [accountError, setAccountError] = useState<string | null>(null);
   const [goalError, setGoalError] = useState<string | null>(null);
   const [appearanceError, setAppearanceError] = useState<string | null>(null);
@@ -160,17 +160,6 @@ export default function SettingsScreen() {
     } finally {
       setPreferenceBusy(false);
     }
-  }
-
-  function confirmClearOffline() {
-    Alert.alert(
-      "Remove saved activity?",
-      "Downloaded WakaTime activity will be removed from this device. You can sync it again while connected.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Remove", style: "destructive", onPress: () => void clearOfflineActivity() },
-      ],
-    );
   }
 
   async function clearOfflineActivity() {
@@ -310,8 +299,8 @@ export default function SettingsScreen() {
           <SyncSwitch value={autoSync} disabled={preferenceBusy} onValueChange={(enabled) => void changeAutoSync(enabled)} />
         </View>}
         {connectionMode && <SettingsButton label={syncing ? "Syncing…" : "Sync now"} disabled={syncing || accountBusy} onPress={() => void runManualRefresh(syncWakaTime)} icon={<ArrowsClockwiseIcon size={18} weight="bold" color={palette.onPrimary} />} />}
-        {savedDays > 0 && <ScaleButton label="Remove saved activity" disabled={clearingOffline || syncing} onPress={confirmClearOffline} glass="clear" style={{ minHeight: 44, borderRadius: 22, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 }}><TrashIcon size={16} color={palette.error} /><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "700" }}>{clearingOffline ? "Removing…" : "Remove saved activity"}</AppText></ScaleButton>}
-        {hasSample && <ScaleButton label="Remove sample activity" onPress={() => void removeSample()} glass="clear" style={{ minHeight: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.muted, fontSize: 12, fontWeight: "700" }}>Remove sample activity</AppText></ScaleButton>}
+        {savedDays > 0 && <ScaleButton label="Remove saved activity" disabled={clearingOffline || syncing} onPress={() => setPendingConfirmation("remove-saved")} glass="clear" style={{ minHeight: 44, borderRadius: 22, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 }}><TrashIcon size={16} color={palette.error} /><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "700" }}>{clearingOffline ? "Removing…" : "Remove saved activity"}</AppText></ScaleButton>}
+        {hasSample && <ScaleButton label="Remove sample activity" onPress={() => setPendingConfirmation("remove-sample")} glass="clear" style={{ minHeight: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.muted, fontSize: 12, fontWeight: "700" }}>Remove sample activity</AppText></ScaleButton>}
         {(dataError || syncError) && <AppText accessibilityRole="alert" style={{ color: palette.error, fontSize: 12 }}>{dataError ?? syncError}</AppText>}
       </SettingsCard>
 
@@ -327,11 +316,23 @@ export default function SettingsScreen() {
           <AppText style={{ flex: 1, color: palette.text, fontSize: 13, fontWeight: "700" }}>Open source credits</AppText>
           <CaretRightIcon size={16} color={palette.muted} />
         </Pressable>
-        {connectionMode && <>
-          <ScaleButton label="Disconnect WakaTime" disabled={accountBusy || syncing} onPress={() => setSignOutAlertVisible(true)} glass="clear" style={{ minHeight: 44, borderRadius: 22, backgroundColor: palette.homeSubtle, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "800" }}>Disconnect</AppText></ScaleButton>
-          <SignOutAlert visible={signOutAlertVisible} onCancel={() => setSignOutAlertVisible(false)} onConfirm={() => { setSignOutAlertVisible(false); void signOut(); }} />
-        </>}
+        {connectionMode && <ScaleButton label="Disconnect WakaTime" disabled={accountBusy || syncing} onPress={() => setPendingConfirmation("disconnect")} glass="clear" style={{ minHeight: 44, borderRadius: 22, backgroundColor: palette.homeSubtle, alignItems: "center", justifyContent: "center" }}><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "800" }}>Disconnect</AppText></ScaleButton>}
       </View>
+      <ConfirmationAlert
+        visible={pendingConfirmation !== null}
+        title={pendingConfirmation === "remove-saved" ? "Remove saved activity?" : pendingConfirmation === "remove-sample" ? "Remove sample activity?" : "Disconnect WakaTime?"}
+        message={pendingConfirmation === "remove-saved" ? "Downloaded WakaTime activity will be removed from this device. You can sync it again while connected." : pendingConfirmation === "remove-sample" ? "Sample activity will be removed from this device." : "You will need to connect again to sync your WakaTime activity."}
+        confirmLabel={pendingConfirmation === "disconnect" ? "Disconnect" : "Remove"}
+        tone="destructive"
+        onCancel={() => setPendingConfirmation(null)}
+        onConfirm={() => {
+          const action = pendingConfirmation;
+          setPendingConfirmation(null);
+          if (action === "remove-saved") void clearOfflineActivity();
+          if (action === "remove-sample") void removeSample();
+          if (action === "disconnect") void signOut();
+        }}
+      />
     </View>
   </Animated.ScrollView>;
 
