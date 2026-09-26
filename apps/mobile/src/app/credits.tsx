@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
-import { KeyboardAvoidingView, Linking, Pressable, SectionList, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Keyboard, KeyboardAvoidingView, Linking, Pressable, SectionList, View, type KeyboardEvent } from "react-native";
 import { CaretRightIcon } from "phosphor-react-native/src/icons/CaretRight";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../components/navigation/android-page-header";
 import { CreditsSearchBar } from "../components/credits/credits-search-bar";
 import { Text } from "../components/ui/app-text";
@@ -57,6 +57,24 @@ export default function CreditsScreen() {
   const insets = useSafeAreaInsets();
   const { offset, onScroll } = useAndroidPageScroll();
   const [query, setQuery] = useState("");
+  const keyboardHeight = useSharedValue(0);
+  useEffect(() => {
+    if (process.env.EXPO_OS !== "ios") return;
+
+    keyboardHeight.value = Keyboard.metrics()?.height ?? 0;
+    const moveWithKeyboard = (event: KeyboardEvent) => {
+      keyboardHeight.value = withTiming(event.endCoordinates.height, { duration: event.duration });
+    };
+    const frame = Keyboard.addListener("keyboardWillChangeFrame", moveWithKeyboard);
+    const show = Keyboard.addListener("keyboardWillShow", moveWithKeyboard);
+    const hide = Keyboard.addListener("keyboardWillHide", (event) => {
+      keyboardHeight.value = withTiming(0, { duration: event.duration });
+    });
+    return () => { frame.remove(); show.remove(); hide.remove(); };
+  }, [keyboardHeight]);
+  const searchPosition = useAnimatedStyle(() => ({
+    bottom: SEARCH_GAP + Math.max(insets.bottom, keyboardHeight.value),
+  }));
   const search = query.trim().toLowerCase();
   const sections = useMemo(() => search
     ? allSections.map((section) => ({ ...section, data: section.data.filter((item) =>
@@ -65,10 +83,11 @@ export default function CreditsScreen() {
     : allSections, [search]);
   const resultCount = sections.reduce((sum, section) => sum + section.data.length, 0);
 
-  const content = <KeyboardAvoidingView
-    behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"}
-    style={{ flex: 1, backgroundColor: palette.background }}
-  >
+  const content = <View style={{ flex: 1, backgroundColor: palette.background }}>
+    <KeyboardAvoidingView
+      behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
     <AnimatedSectionList
       sections={sections}
       keyExtractor={(item) => `${item.name}@${item.version ?? "asset"}`}
@@ -89,9 +108,10 @@ export default function CreditsScreen() {
       style={{ flex: 1, backgroundColor: palette.background }}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 56 + insets.bottom + SEARCH_GAP * 3 }}
     />
-    <View pointerEvents="box-none" style={{ position: "absolute", left: 16, right: 16, bottom: insets.bottom + SEARCH_GAP }}>
+    </KeyboardAvoidingView>
+    <Animated.View pointerEvents="box-none" style={[{ position: "absolute", left: 16, right: 16 }, searchPosition]}>
       <CreditsSearchBar query={query} onChangeText={setQuery} />
-    </View>
-  </KeyboardAvoidingView>;
+    </Animated.View>
+  </View>;
   return process.env.EXPO_OS === "android" ? <AndroidPageFrame title="Open source credits" offset={offset} back>{content}</AndroidPageFrame> : content;
 }
