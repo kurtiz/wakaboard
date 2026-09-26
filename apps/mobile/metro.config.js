@@ -8,6 +8,12 @@ const config = getDefaultConfig(__dirname);
 const uniwindConfig = withUniwindConfig(config, {
   // relative path to your global.css file
   cssEntryFile: "./src/global.css",
+  extraThemes: [
+    "ember-light", "ember-dark",
+    "indigo-light", "indigo-dark",
+    "berry-light", "berry-dark",
+    "mono-light", "mono-dark",
+  ],
   // optional: path to typings
   dtsFile: "./src/uniwind-types.d.ts",
 });

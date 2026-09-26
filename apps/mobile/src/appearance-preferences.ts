@@ -22,19 +22,20 @@ function deviceTheme(): "light" | "dark" {
   return Appearance.getColorScheme() === "dark" ? "dark" : "light";
 }
 
-function applyThemeMode(mode: ThemeMode) {
-  if (mode !== "system" || process.env.EXPO_OS === "web") {
-    Uniwind.setTheme(mode);
+function applyAppearance() {
+  if (accentChoice === "pine") {
+    Uniwind.setTheme(themeMode);
     return;
   }
 
-  // React Native 0.86 expects "unspecified" to follow Android/iOS settings.
-  // Uniwind 1.0.5 passes undefined here, which crashes Android's native module.
-  Appearance.setColorScheme("unspecified");
-  const next = deviceTheme();
-  if (!Uniwind.hasAdaptiveThemes || Uniwind.currentTheme !== next) {
-    Uniwind.setTheme(next);
+  // Clear an earlier explicit override before reading the device preference.
+  if (themeMode === "system" && process.env.EXPO_OS !== "web") {
     Appearance.setColorScheme("unspecified");
+  }
+  const scheme = themeMode === "system" ? deviceTheme() : themeMode;
+  Uniwind.setTheme(`${accentChoice}-${scheme}`);
+  if (themeMode !== "system" && process.env.EXPO_OS !== "web") {
+    Appearance.setColorScheme(scheme);
   }
 }
 
@@ -43,15 +44,15 @@ export function initializeAppearance() {
   initialized = true;
   if (process.env.EXPO_OS !== "web") {
     Appearance.addChangeListener(({ colorScheme }) => {
-      if (themeMode !== "system") return;
+      if (themeMode !== "system" || accentChoice === "pine") return;
       const next = colorScheme === "dark" ? "dark" : "light";
-      if (Uniwind.currentTheme !== next) {
-        Uniwind.setTheme(next);
-        Appearance.setColorScheme("unspecified");
+      const theme = `${accentChoice}-${next}` as const;
+      if (Uniwind.currentTheme !== theme) {
+        Uniwind.setTheme(theme);
       }
     });
   }
-  applyThemeMode(themeMode);
+  applyAppearance();
 }
 
 function subscribe(listener: () => void) {
@@ -70,12 +71,12 @@ export function useAppearancePreferences() {
 export async function setThemeMode(mode: ThemeMode) {
   const previous = themeMode;
   themeMode = mode;
-  applyThemeMode(mode);
+  applyAppearance();
   notify();
   try { await Storage.setItem("app-theme", mode); }
   catch (error) {
     themeMode = previous;
-    applyThemeMode(previous);
+    applyAppearance();
     notify();
     throw error;
   }
@@ -84,10 +85,12 @@ export async function setThemeMode(mode: ThemeMode) {
 export async function setAccentChoice(accent: AccentChoice) {
   const previous = accentChoice;
   accentChoice = accent;
+  applyAppearance();
   notify();
   try { await Storage.setItem("app-accent", accent); }
   catch (error) {
     accentChoice = previous;
+    applyAppearance();
     notify();
     throw error;
   }
