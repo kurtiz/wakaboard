@@ -8,6 +8,7 @@ export type Leader = {
   name: string;
   username: string | null;
   photo: string | null;
+  photoLookupFailed?: boolean;
   seconds: number;
   dailyAverage: number;
   languages: { name: string; seconds: number }[];

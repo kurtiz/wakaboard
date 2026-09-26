@@ -156,11 +156,13 @@ export default {
       }
       const currentRunningTotal = ownEntry?.running_total;
       const photos = new Map<string, string>();
+      const failedPhotos = new Set<string>();
       for (let index = 0; index < Math.min(entries.length, 10); index += 4) {
         const group = entries.slice(index, Math.min(index + 4, 10));
         const resolved = await Promise.all(group.map(async (entry) => {
           if (!entry.user?.id || !entry.user.is_photo_public) return null;
           const profile = await getWakaTimeProfile(entry.user.id, headers);
+          if (!profile) failedPhotos.add(entry.user.id);
           return profile ? [entry.user.id, publicPhoto(profile)] as const : null;
         }));
         for (const result of resolved) if (result?.[1]) photos.set(result[0], result[1]);
@@ -180,6 +182,7 @@ export default {
           name: entry.user?.display_name || entry.user?.username || "Anonymous User",
           username: entry.user?.username ?? null,
           photo: entry.user?.id ? photos.get(entry.user.id) ?? null : null,
+          photoLookupFailed: entry.user?.id ? failedPhotos.has(entry.user.id) : false,
           seconds: entry.running_total?.total_seconds ?? 0,
           dailyAverage: entry.running_total?.daily_average ?? 0,
           languages: (entry.running_total?.languages ?? []).map((language) => ({ name: language.name, seconds: language.total_seconds })),
