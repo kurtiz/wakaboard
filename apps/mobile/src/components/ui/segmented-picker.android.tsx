@@ -28,7 +28,7 @@ export function SegmentedPicker<T extends string | number>({ options, value, onC
     if (initialized.current && indicatorTarget.current === target && !reducedMotion) return;
     indicatorTarget.current = target;
     if (!initialized.current || reducedMotion) position.set(target);
-    else position.set(withTiming(target, { duration: 160, easing: Easing.out(Easing.cubic) }));
+    else position.set(withTiming(target, { duration: 130, easing: Easing.out(Easing.cubic) }));
     initialized.current = true;
   }, [position, reducedMotion, segmentWidth, selectedIndex]);
 
@@ -39,16 +39,16 @@ export function SegmentedPicker<T extends string | number>({ options, value, onC
     if (segmentWidth) {
       const target = index * segmentWidth;
       indicatorTarget.current = target;
-      position.set(reducedMotion ? target : withTiming(target, { duration: 160, easing: Easing.out(Easing.cubic) }));
+      position.set(reducedMotion ? target : withTiming(target, { duration: 130, easing: Easing.out(Easing.cubic) }));
     }
     onChange(nextValue);
   }
 
-  return <View accessibilityRole="tablist" onLayout={(event) => setWidth(event.nativeEvent.layout.width)} style={{ flexDirection: "row", padding: 4, borderRadius: 999, backgroundColor: palette.homeSubtle }}>
-    {segmentWidth > 0 ? <Animated.View pointerEvents="none" style={[{ position: "absolute", left: 4, top: 4, bottom: 4, width: segmentWidth, borderRadius: 999, backgroundColor: palette.card }, indicatorStyle]} /> : null}
+  return <View accessibilityRole="tablist" onLayout={(event) => setWidth(event.nativeEvent.layout.width)} style={{ flexDirection: "row", padding: 4, borderRadius: 16, borderCurve: "continuous", backgroundColor: palette.homeSubtle }}>
+    {segmentWidth > 0 ? <Animated.View pointerEvents="none" style={[{ position: "absolute", left: 4, top: 4, bottom: 4, width: segmentWidth, borderRadius: 12, borderCurve: "continuous", backgroundColor: palette.card, boxShadow: `0 1px 5px ${palette.cardShadow}` }, indicatorStyle]} /> : null}
     {options.map((option, index) => {
       const selected = option.value === value;
-      return <Pressable key={String(option.value)} accessibilityRole="tab" accessibilityLabel={option.accessibilityLabel ?? option.label} accessibilityState={{ selected }} onPressIn={() => select(option.value, index)} onPress={() => select(option.value, index)} style={{ flex: 1, minHeight: 42, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 3 }}>
+      return <Pressable key={String(option.value)} accessibilityRole="tab" accessibilityLabel={option.accessibilityLabel ?? option.label} accessibilityState={{ selected }} onPressIn={() => select(option.value, index)} onPress={() => select(option.value, index)} style={{ flex: 1, minHeight: 46, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 3 }}>
         {renderLeading?.(option.value, selected)}
         <Text numberOfLines={1} style={{ color: selected ? palette.primary : palette.muted, fontSize: 13, fontWeight: selected ? "800" : "600" }}>{option.label}</Text>
       </Pressable>;

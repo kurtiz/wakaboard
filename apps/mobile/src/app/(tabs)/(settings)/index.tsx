@@ -12,10 +12,12 @@ import { TrashIcon } from "phosphor-react-native/src/icons/Trash";
 import { MinusIcon } from "phosphor-react-native/src/icons/Minus";
 import { PlusIcon } from "phosphor-react-native/src/icons/Plus";
 import { useEffect, useState } from "react";
-import { Alert, Pressable, Switch, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { AndroidLargeTitle, AndroidPageFrame, useAndroidPageScroll } from "../../../components/navigation/android-page-header";
 import { SettingsButton, SettingsCard } from "../../../components/settings/settings-card";
+import { SyncSwitch } from "../../../components/settings/sync-switch";
+import { SegmentedPicker } from "../../../components/ui/segmented-picker";
 import { Text as AppText } from "../../../components/ui/app-text";
 import { HapticPreset } from "../../../constants/haptics";
 import { setAccentChoice, setThemeMode, useAppearancePreferences, type AccentChoice, type ThemeMode } from "../../../appearance-preferences";
@@ -192,7 +194,7 @@ export default function SettingsScreen() {
   async function chooseTheme(choice: ThemeMode) {
     if (mode === choice) return;
     setAppearanceError(null);
-    try { await setThemeMode(choice); void HapticPreset.selection(); }
+    try { await setThemeMode(choice); }
     catch { setAppearanceError("Could not save the theme."); }
   }
 
@@ -230,9 +232,15 @@ export default function SettingsScreen() {
       </View>
 
       <SettingsCard title="Appearance" icon={<PaletteIcon size={20} weight="duotone" color={palette.primary} />}>
-        <View accessibilityRole="radiogroup" style={{ flexDirection: "row", backgroundColor: palette.homeSubtle, padding: 4, borderRadius: 14, gap: 3 }}>
-          {(["system", "light", "dark"] as const).map((choice) => <Pressable key={choice} accessibilityRole="radio" accessibilityLabel={`${choice} theme`} accessibilityState={{ checked: mode === choice }} onPress={() => void chooseTheme(choice)} style={{ flex: 1, minHeight: 38, borderRadius: 11, backgroundColor: mode === choice ? palette.card : "transparent", justifyContent: "center", alignItems: "center", boxShadow: mode === choice ? `0 1px 5px ${palette.cardShadow}` : undefined }}><AppText style={{ color: mode === choice ? palette.primary : palette.muted, fontSize: 13, fontWeight: mode === choice ? "800" : "600", textTransform: "capitalize" }}>{choice}</AppText></Pressable>)}
-        </View>
+        <SegmentedPicker
+          options={[
+            { value: "system", label: "System", accessibilityLabel: "Follow device theme" },
+            { value: "light", label: "Light", accessibilityLabel: "Light theme" },
+            { value: "dark", label: "Dark", accessibilityLabel: "Dark theme" },
+          ] as const}
+          value={mode}
+          onChange={(choice) => void chooseTheme(choice)}
+        />
         <View style={{ gap: 10 }}>
           <AppText style={{ color: palette.muted, fontSize: 11, fontWeight: "800", letterSpacing: 0.7, textTransform: "uppercase" }}>Accent scheme</AppText>
           <View accessibilityRole="radiogroup" style={{ flexDirection: "row", justifyContent: "space-between", gap: 5 }}>
@@ -300,7 +308,7 @@ export default function SettingsScreen() {
             <AppText style={{ color: palette.text, fontSize: 14, fontWeight: "700" }}>Sync on app open</AppText>
             <AppText style={{ color: palette.muted, fontSize: 12 }}>Refresh when you launch WakaBoard</AppText>
           </View>
-          <Switch accessibilityLabel="Sync on app open" value={autoSync} disabled={preferenceBusy} onValueChange={(enabled) => void changeAutoSync(enabled)} trackColor={{ true: palette.primary }} />
+          <SyncSwitch value={autoSync} disabled={preferenceBusy} onValueChange={(enabled) => void changeAutoSync(enabled)} />
         </View>}
         {accountEmail && <SettingsButton label={syncing ? "Syncing…" : "Sync now"} disabled={syncing || accountBusy} onPress={() => void runManualRefresh(syncWakaTime)} icon={<ArrowsClockwiseIcon size={18} weight="bold" color={palette.onPrimary} />} />}
         {savedDays > 0 && <Pressable accessibilityRole="button" accessibilityLabel="Remove saved activity" disabled={clearingOffline || syncing} onPress={confirmClearOffline} style={{ minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, opacity: clearingOffline || syncing ? 0.5 : 1 }}><TrashIcon size={16} color={palette.error} /><AppText style={{ color: palette.error, fontSize: 13, fontWeight: "700" }}>{clearingOffline ? "Removing…" : "Remove saved activity"}</AppText></Pressable>}
