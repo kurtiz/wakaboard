@@ -205,12 +205,19 @@ The Worker exposes `GET /health`, Better Auth routes under `/api/auth/`, and aut
 | `pnpm start`                                       | Starts the Expo development server.                                  |
 | `pnpm android`                                     | Compiles a local Android development build and starts Metro.         |
 | `pnpm ios`                                         | Compiles a local iOS development build on macOS and starts Metro.    |
+| `pnpm build`                                       | Alias for `pnpm build:android`.                                      |
+| `pnpm build:android`                               | Cloud Android APK build via EAS Build (profile `production`).         |
+| `pnpm build:ios`                                   | Cloud iOS build via EAS Build (profile `production`).                |
 | `pnpm lint`                                        | Lints the mobile app.                                                |
 | `pnpm typecheck`                                   | Typechecks workspaces with a typecheck script, including the Worker. |
 | `pnpm --filter @wakaboard/mobile exec expo-doctor` | Checks Expo dependencies and configuration.                          |
 
-For cloud native builds, use [EAS Build](https://docs.expo.dev/build/introduction/) from `apps/mobile` after configuring
-your own Expo project and signing credentials.
+For cloud native builds, use [EAS Build](https://docs.expo.dev/build/introduction/) via the `pnpm build:android` and
+`pnpm build:ios` scripts. Both invoke `eas-cli` from `apps/mobile`, where `eas.json` lives. The `production` build
+profile pins `"environment": "production"`; without that field EAS silently resolves the `preview` environment instead and
+any variable you set in `production` never reaches the bundle. Note the scripts use `npx`, not `pnpm dlx`: the
+`allowBuilds` allowlist in `pnpm-workspace.yaml` does not cover `eas-cli`'s transitive native dependencies, so `pnpm dlx
+eas-cli` fails with `ERR_PNPM_IGNORED_BUILDS`.
 The [Native Build GitHub Actions workflow](.github/workflows/native-build.yml) runs automatically on pushes to `preview`
 and `release`, with no automatic run for `main`. It can also be triggered manually for Android, iOS, or both. It uploads
 an Android debug APK and an unsigned iOS simulator ZIP; it does not publish to an app store.
@@ -228,7 +235,7 @@ ignored. OTA support via Hot Updater is planned but is **not included** in curre
 
 | Name                     | Where                                            | Purpose                                                                                                                 |
 |--------------------------|--------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
-| `EXPO_PUBLIC_API_URL`    | `apps/mobile/.env.local`                         | Public HTTPS origin of **your** Worker. Bundled into the app; never put a secret here. Omit for local/sample data only. |
+| `EXPO_PUBLIC_API_URL`    | `apps/mobile/.env.local`, or the EAS `production` environment for cloud builds | Public HTTPS origin of **your** Worker. Bundled into the app; never put a secret here. Omit for local/sample data only. |
 | `BETTER_AUTH_URL`        | Optional in a local Worker config or `.dev.vars` | Fixed auth origin when set. The public examples omit it and use the request origin.                                     |
 | `BETTER_AUTH_SECRET`     | Worker secret or local `.dev.vars`               | Unique random signing secret for Better Auth.                                                                           |
 | `WAKATIME_CLIENT_ID`     | Worker secret or local `.dev.vars`               | WakaTime OAuth app client ID.                                                                                           |
@@ -239,6 +246,14 @@ The public template derives its Better Auth base URL from the incoming request o
 custom domain works without a checked-in URL. The maintainer's local Worker config retains its fixed `BETTER_AUTH_URL`,
 preserving its callback behavior. The mobile URL is an Expo public variable; restart Metro or rebuild the app after
 changing it.
+
+`EXPO_PUBLIC_API_URL` is the only environment variable the mobile bundle reads, and it is the only one that belongs in
+the EAS `production` environment. Expo inlines `EXPO_PUBLIC_`-prefixed values as **plaintext into the shipped JS bundle**,
+so `BETTER_AUTH_SECRET`, `WAKATIME_CLIENT_ID`, and `WAKATIME_CLIENT_SECRET` must stay on the Worker. Set them as Worker
+secrets (`wrangler secret put`) and never as EAS variables. `apps/worker/.env.production` is a local reference file for
+those Worker secrets and is not read by any script in the repository; its `BETTER_AUTH_URL` is the value promoted to
+`EXPO_PUBLIC_API_URL` for the app. Verify the split with `eas env:list --environment production` — it should list exactly
+one variable.
 
 ## Architecture and data
 
