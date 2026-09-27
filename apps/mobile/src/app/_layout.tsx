@@ -1,5 +1,6 @@
 import "../global.css";
 
+import { HotUpdater } from "@hot-updater/react-native";
 import { Stack, usePathname } from "expo-router";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
@@ -12,7 +13,7 @@ import { LeaderboardProvider } from "../data/leaderboard-context";
 import { FontProvider, useFontChoice } from "../font-choice";
 import { PaletteProvider, usePalette } from "../theme";
 
-export default function Layout() {
+function Layout() {
   initializeAppearance();
   const [fontsLoaded, fontError] = useFonts({
     Nunito: require("../../assets/fonts/Nunito.ttf"),
@@ -21,6 +22,12 @@ export default function Layout() {
   if (!fontsLoaded && !fontError) return null;
   return <PaletteProvider><AppProviders /></PaletteProvider>;
 }
+
+const updateServerUrl = process.env.EXPO_PUBLIC_HOT_UPDATER_URL;
+
+export default updateServerUrl
+  ? HotUpdater.wrap({ baseURL: updateServerUrl, updateStrategy: "appVersion" })(Layout)
+  : Layout;
 
 function AppProviders() {
   const palette = usePalette();

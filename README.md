@@ -229,13 +229,15 @@ distribution requires Apple signing and export.
 
 When adding a native library or changing native configuration, rebuild the development client. Configure native behavior
 in `apps/mobile/app.json` and config plugins; generated `apps/mobile/ios` and `apps/mobile/android` directories are
-ignored. OTA support via Hot Updater is planned but is **not included** in current native artifacts.
+ignored. Hot Updater's Expo config plugin reapplies its native changes on each prebuild. Existing native artifacts do not
+include Hot Updater; build a new binary before deploying OTA updates.
 
 ## Configuration reference
 
 | Name                     | Where                                            | Purpose                                                                                                                 |
 |--------------------------|--------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
 | `EXPO_PUBLIC_API_URL`    | `apps/mobile/.env.local`, or the EAS `production` environment for cloud builds | Public HTTPS origin of **your** Worker. Bundled into the app; never put a secret here. Omit for local/sample data only. |
+| `EXPO_PUBLIC_HOT_UPDATER_URL` | `apps/mobile/.env.local`, or the EAS `production` environment for cloud builds | Public Hot Updater Worker URL ending in `/api/check-update`. Bundled into the app; never put a secret here. |
 | `BETTER_AUTH_URL`        | Optional in a local Worker config or `.dev.vars` | Fixed auth origin when set. The public examples omit it and use the request origin.                                     |
 | `BETTER_AUTH_SECRET`     | Worker secret or local `.dev.vars`               | Unique random signing secret for Better Auth.                                                                           |
 | `WAKATIME_CLIENT_ID`     | Worker secret or local `.dev.vars`               | WakaTime OAuth app client ID.                                                                                           |
@@ -247,13 +249,13 @@ custom domain works without a checked-in URL. The maintainer's local Worker conf
 preserving its callback behavior. The mobile URL is an Expo public variable; restart Metro or rebuild the app after
 changing it.
 
-`EXPO_PUBLIC_API_URL` is the only environment variable the mobile bundle reads, and it is the only one that belongs in
-the EAS `production` environment. Expo inlines `EXPO_PUBLIC_`-prefixed values as **plaintext into the shipped JS bundle**,
+`EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_HOT_UPDATER_URL` are the public environment variables the mobile bundle reads.
+Expo inlines `EXPO_PUBLIC_`-prefixed values as **plaintext into the shipped JS bundle**,
 so `BETTER_AUTH_SECRET`, `WAKATIME_CLIENT_ID`, and `WAKATIME_CLIENT_SECRET` must stay on the Worker. Set them as Worker
 secrets (`wrangler secret put`) and never as EAS variables. `apps/worker/.env.production` is a local reference file for
 those Worker secrets and is not read by any script in the repository; its `BETTER_AUTH_URL` is the value promoted to
-`EXPO_PUBLIC_API_URL` for the app. Verify the split with `eas env:list --environment production` — it should list exactly
-one variable.
+`EXPO_PUBLIC_API_URL` for the app. Verify the split with `eas env:list --environment production` — it should list these
+two public URLs and no Worker secrets.
 
 ## Architecture and data
 

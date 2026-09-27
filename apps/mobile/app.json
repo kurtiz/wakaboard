@@ -9,6 +9,12 @@
     "orientation": "default",
     "plugins": [
       "expo-router",
+      [
+        "@hot-updater/react-native",
+        {
+          "channel": "production"
+        }
+      ],
       "expo-status-bar",
       "expo-sqlite",
       "expo-secure-store",

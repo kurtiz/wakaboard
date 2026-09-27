@@ -5,6 +5,7 @@
   "dependencies": {
     "@better-auth/expo": "^1.7.5",
     "@expo/ui": "~57.0.20",
+    "@hot-updater/react-native": "0.36.15",
     "@wakaboard/core": "workspace:*",
     "better-auth": "^1.7.5",
     "expo": "^57.0.25",
@@ -45,11 +46,15 @@
     "uniwind": "~1.0.0"
   },
   "devDependencies": {
+    "@hot-updater/cloudflare": "0.36.15",
+    "@hot-updater/expo": "0.36.15",
     "@types/node": "^26.6.2",
     "@types/react": "~19.2.14",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~57.0.2",
-    "typescript": "~6.0.3"
+    "hot-updater": "^0.36.15",
+    "typescript": "~6.0.3",
+    "wrangler": "^4.137.0"
   },
   "private": true,
   "scripts": {
