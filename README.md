@@ -40,7 +40,7 @@ Some screens and share features are still being refined. Please report reproduci
 
 ## Versioning and release history
 
-The app version and native build numbers are tracked in `apps/mobile/app.json`. See the [versioning policy](docs/versioning.md) and [mobile changelog](CHANGELOG.md) for the release process and shipped features.
+The user-facing app version is tracked in `apps/mobile/app.json`; EAS manages production native build numbers remotely. See the [versioning policy](docs/versioning.md) and [mobile changelog](CHANGELOG.md) for the release process and shipped features.
 Settings includes credits for the mobile app's direct and supporting open source packages and bundled fonts. Run `pnpm credits:generate` after changing mobile dependencies.
 
 ## Repository layout
@@ -222,10 +222,9 @@ The [Native Build GitHub Actions workflow](.github/workflows/native-build.yml) r
 and `release`, with no automatic run for `main`. It can also be triggered manually for Android, iOS, or both. It uploads
 an Android debug APK and an unsigned iOS simulator ZIP; it does not publish to an app store.
 
-For a signed Android release APK in GitHub Actions, follow the [Android signing guide](docs/android-signing.md) to get
-or generate a keystore and set the four required repository secrets. With no signing secrets, the release APK is
-skipped; with only some, the workflow fails. The iOS ZIP is for a simulator, not a device or TestFlight; device
-distribution requires Apple signing and export.
+Signed Android release APKs come from EAS Build; see the [Android signing guide](docs/android-signing.md). The GitHub
+Actions workflow provides a debug APK and an unsigned iOS simulator ZIP for internal checks. The iOS ZIP is for a
+simulator, not a device or TestFlight; device distribution requires Apple signing and export.
 
 When adding a native library or changing native configuration, rebuild the development client. Configure native behavior
 in `apps/mobile/app.json` and config plugins; generated `apps/mobile/ios` and `apps/mobile/android` directories are

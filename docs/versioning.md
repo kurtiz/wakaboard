@@ -7,10 +7,13 @@ WakaBoard's current app version is **1.0.0**. This is the development baseline, 
 | Identifier | Location | Purpose |
 | --- | --- | --- |
 | App version (`MAJOR.MINOR.PATCH`) | `app.json` `expo.version`, mobile `package.json` | The version people see and the key for release notes. |
-| Native build number | `app.json` `ios.buildNumber`, `android.versionCode` | Unique number for each submitted binary on each platform. Start at `1`; increase before every later store upload. |
+| Native build number | EAS remote version source | Unique number for each production binary on each platform. EAS increments it on every production build. |
+| Hot Updater bundle ID | Hot Updater deployment | Identifies an OTA bundle distributed to compatible native app versions. |
 | Git commit | Release tag and build metadata | Identifies the exact source behind a binary or update. |
 
-The app version and native build number are separate. A rejected or replacement store build can keep the same app version while receiving a higher build number. If an older build was already submitted under either bundle ID, first check its build number and continue above it.
+The app version and native build number are separate. A rejected or replacement store build can keep the same app version while receiving a higher build number. `apps/mobile/app.json` keeps `ios.buildNumber` and `android.versionCode` at `1` as local build defaults; EAS ignores them for production builds. Before the first EAS production build on a platform, check any previously submitted store build number and seed EAS above it if needed. Settings reads the installed values through `expo-application`.
+
+Hot Updater currently uses the `appVersion` strategy. Deploy JavaScript-only updates to the installed app version and channel; keep the app version unchanged for these updates. Change the app version when a new native binary introduces a different native runtime so incompatible binaries cannot receive the same OTA bundle. Do not use a broad target such as `*` without checking native compatibility.
 
 ## When to change the app version
 
@@ -23,9 +26,10 @@ Every shipped version gets a section in `CHANGELOG.md` with Added, Changed, Fixe
 ## Release checklist
 
 1. Decide the next app version from the changes in `CHANGELOG.md`; update `app.json` and the mobile `package.json` together.
-2. Increase `ios.buildNumber` and `android.versionCode` above the last submitted build for each platform. The current GitHub Actions native build workflow uses the values in `app.json`; it does not increment them.
+2. Build production binaries through EAS Build. The `production` profile increments Android `versionCode` and iOS `buildNumber` remotely. The GitHub Actions workflow produces only internal debug and simulator artifacts.
 3. When mobile dependencies change, run `pnpm credits:generate` to refresh the direct and supporting package list. Review bundled font credits, then run `pnpm lint` (which checks the generated list) and `pnpm typecheck`.
 4. Build and test both platforms. Record the commit and build numbers in the changelog entry before distribution.
-5. After distribution, date the entry and tag the shipped commit `mobile-vMAJOR.MINOR.PATCH`. Leave later work under **Unreleased**.
+5. Deploy OTA bundles only to compatible app versions and the intended Hot Updater channel. An OTA deployment does not change the installed native app or build number.
+6. After distribution, date the entry and tag the shipped commit `mobile-vMAJOR.MINOR.PATCH`. Leave later work under **Unreleased**.
 
-If production builds move to EAS, decide whether to keep build numbers in Git or use EAS remote auto-increment. Synchronize the last submitted iOS and Android numbers before switching. For OTA updates, introduce a runtime version policy only when an updater is configured; an update must target compatible native builds. Until then, the app version and native build numbers describe binaries.
+Do not derive the app version from every commit: JavaScript-only OTA changes must continue targeting the version embedded in installed native builds. Create a release tag only for source that was actually distributed.

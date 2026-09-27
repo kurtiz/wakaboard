@@ -1,7 +1,7 @@
 import { Host, Slider } from "@expo/ui";
 import { formatDuration } from "@wakaboard/core";
+import * as Application from "expo-application";
 import { Image } from "expo-image";
-import Constants from "expo-constants";
 import { router } from "expo-router";
 import { ArrowsClockwiseIcon } from "phosphor-react-native/src/icons/ArrowsClockwise";
 import { CheckIcon } from "phosphor-react-native/src/icons/Check";
@@ -64,7 +64,8 @@ export default function SettingsScreen() {
   const latestSavedLabel = latestSaved ? new Date(`${latestSaved}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : null;
   const profileName = currentProfile?.name || accountName || accountEmail || "WakaTime";
   const initials = profileName.trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("");
-  const appBuild = process.env.EXPO_OS === "ios" ? Constants.expoConfig?.ios?.buildNumber : Constants.expoConfig?.android?.versionCode;
+  const appVersion = Application.nativeApplicationVersion;
+  const appBuild = Application.nativeBuildVersion;
 
   useEffect(() => {
     if (wakatimeConnectionAvailable) {
@@ -310,7 +311,7 @@ export default function SettingsScreen() {
 
       <View style={{ backgroundColor: palette.card, borderColor: palette.border, borderWidth: 1, borderRadius: 24, borderCurve: "continuous", padding: 18, gap: 12 }}>
         <AppText style={{ color: palette.primary, fontSize: 17, fontWeight: "800" }}>WakaBoard</AppText>
-        <View style={{ backgroundColor: palette.homeSurface, borderRadius: 11, paddingHorizontal: 12, minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><AppText style={{ color: palette.muted, fontSize: 12 }}>App version</AppText><AppText selectable style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>{Constants.expoConfig?.version ?? "—"}{appBuild != null ? ` (${appBuild})` : ""}</AppText></View>
+        <View style={{ backgroundColor: palette.homeSurface, borderRadius: 11, paddingHorizontal: 12, minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><AppText style={{ color: palette.muted, fontSize: 12 }}>App version</AppText><AppText selectable style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>{appVersion ?? "—"}{appBuild != null ? ` (${appBuild})` : ""}</AppText></View>
         <View style={{ backgroundColor: palette.homeSurface, borderRadius: 11, paddingHorizontal: 12, minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><AppText style={{ color: palette.muted, fontSize: 12 }}>Activity source</AppText><AppText style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>WakaTime</AppText></View>
         <Pressable accessibilityRole="link" accessibilityLabel="Open source credits" onPress={() => router.push("/credits")} style={({ pressed }) => ({ minHeight: 48, paddingHorizontal: 12, borderRadius: 11, backgroundColor: palette.homeSurface, flexDirection: "row", alignItems: "center", opacity: pressed ? 0.7 : 1 })}>
           <AppText style={{ flex: 1, color: palette.text, fontSize: 13, fontWeight: "700" }}>Open source credits</AppText>

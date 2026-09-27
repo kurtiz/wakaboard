@@ -9,6 +9,7 @@
     "@wakaboard/core": "workspace:*",
     "better-auth": "^1.7.5",
     "expo": "^57.0.25",
+    "expo-application": "~57.0.3",
     "expo-background-task": "~57.0.20",
     "expo-build-properties": "~57.0.22",
     "expo-constants": "~57.0.19",

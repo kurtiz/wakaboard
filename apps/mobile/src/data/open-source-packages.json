@@ -30,6 +30,12 @@
     "direct": true
   },
   {
+    "name": "expo-application",
+    "version": "57.0.3",
+    "license": "MIT",
+    "direct": true
+  },
+  {
     "name": "expo-background-task",
     "version": "57.0.20",
     "license": "MIT",
@@ -1982,12 +1988,6 @@
   {
     "name": "event-target-shim",
     "version": "5.0.1",
-    "license": "MIT",
-    "direct": false
-  },
-  {
-    "name": "expo-application",
-    "version": "57.0.3",
     "license": "MIT",
     "direct": false
   },
