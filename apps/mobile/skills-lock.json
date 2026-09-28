@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "app-store-screenshots": {
+      "source": "ParthJadhav/app-store-screenshots",
+      "sourceType": "github",
+      "skillPath": "skills/app-store-screenshots/SKILL.md",
+      "computedHash": "a0b74e750943b105884b4853d5bcc2dc595187e809c2cf4548cfe3af392ed11d"
+    },
     "creating-reanimated-animations": {
       "source": "estevg/skills",
       "sourceType": "github",
