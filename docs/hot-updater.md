@@ -33,6 +33,8 @@ pnpm --filter @wakaboard/mobile exec hot-updater bundle list -p android -c produ
 
 Open the installed app while online to download the update, then fully close and reopen it to run the downloaded bundle. Confirm the changed behavior in the app. A normal update downloads in the background and applies on the next launch.
 
+In the app, open **Settings → App updates** to open the standalone update page without the bottom tabs. It shows the installed OTA bundle ID, lets you check for an update, and offers a restart when a download is ready. The **Use mobile data for updates** switch is on by default. When switched off, new update checks require Wi-Fi or Ethernet. After connecting to Wi-Fi, reopen the app or tap **Check now**. The setting does not cancel a download already underway. The app version and native build number stay the same after an OTA update.
+
 If an update causes a problem, open the local management console from the repository root and disable the affected bundle:
 
 ```bash

@@ -1,10 +1,11 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { HapticPreset } from "../../constants/haptics";
 import { usePalette } from "../../theme";
 
 export function NativeTabNavigation() {
   const palette = usePalette();
   const dark = palette.scheme === "dark";
-  return <NativeTabs tintColor={palette.primary} backgroundColor={palette.card} indicatorColor={palette.mint} rippleColor={palette.secondaryRipple} labelVisibilityMode="labeled">
+  return <NativeTabs tintColor={palette.primary} backgroundColor={palette.card} indicatorColor={palette.mint} rippleColor={palette.secondaryRipple} labelVisibilityMode="labeled" screenListeners={{ tabPress: (event) => { if (!event.data.isPrevented) void HapticPreset.selection(); } }}>
     <NativeTabs.Trigger name="(home)">
       <NativeTabs.Trigger.Icon src={dark
         ? { default: require("../../../assets/icons/native-tabs/home-regular-dark.png"), selected: require("../../../assets/icons/native-tabs/home-fill-dark.png") }

@@ -27,6 +27,7 @@ import { HapticPreset } from "../../../constants/haptics";
 import { setAccentChoice, setThemeMode, useAppearancePreferences, type AccentChoice, type ThemeMode } from "../../../appearance-preferences";
 import { useDashboard } from "../../../data/dashboard-context";
 import { loadOfflineStats } from "../../../data/dashboard-store";
+import { getInstalledOtaInfo } from "../../../data/ota-info";
 import { useLeaderboards } from "../../../data/leaderboard-context";
 import { authClient, disconnectWakaTime, getConnectedUser, getConnectionMode, type ConnectionMode, wakatimeConnectionAvailable } from "../../../data/wakatime-client";
 import { isAutoSyncEnabled, setAutoSyncEnabled } from "../../../data/offline-preferences";
@@ -66,6 +67,7 @@ export default function SettingsScreen() {
   const initials = profileName.trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("");
   const appVersion = Application.nativeApplicationVersion;
   const appBuild = Application.nativeBuildVersion;
+  const installedUpdate = getInstalledOtaInfo();
 
   useEffect(() => {
     if (wakatimeConnectionAvailable) {
@@ -312,6 +314,11 @@ export default function SettingsScreen() {
       <View style={{ backgroundColor: palette.card, borderColor: palette.border, borderWidth: 1, borderRadius: 24, borderCurve: "continuous", padding: 18, gap: 12 }}>
         <AppText style={{ color: palette.primary, fontSize: 17, fontWeight: "800" }}>WakaBoard</AppText>
         <View style={{ backgroundColor: palette.homeSurface, borderRadius: 11, paddingHorizontal: 12, minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><AppText style={{ color: palette.muted, fontSize: 12 }}>App version</AppText><AppText selectable style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>{appVersion ?? "—"}{appBuild != null ? ` (${appBuild})` : ""}</AppText></View>
+        <Pressable accessibilityRole="button" accessibilityLabel={`App updates, ${installedUpdate.label}`} onPress={() => router.push("/updates")} style={({ pressed }) => ({ minHeight: 48, paddingHorizontal: 12, borderRadius: 11, backgroundColor: palette.homeSurface, flexDirection: "row", alignItems: "center", gap: 8, opacity: pressed ? 0.7 : 1 })}>
+          <AppText style={{ flex: 1, color: palette.text, fontSize: 13, fontWeight: "700" }}>App updates</AppText>
+          <AppText style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>{installedUpdate.label}</AppText>
+          <CaretRightIcon size={16} color={palette.muted} />
+        </Pressable>
         <View style={{ backgroundColor: palette.homeSurface, borderRadius: 11, paddingHorizontal: 12, minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><AppText style={{ color: palette.muted, fontSize: 12 }}>Activity source</AppText><AppText style={{ color: palette.primary, fontSize: 12, fontWeight: "700" }}>WakaTime</AppText></View>
         <Pressable accessibilityRole="link" accessibilityLabel="Open source credits" onPress={() => router.push("/credits")} style={({ pressed }) => ({ minHeight: 48, paddingHorizontal: 12, borderRadius: 11, backgroundColor: palette.homeSurface, flexDirection: "row", alignItems: "center", opacity: pressed ? 0.7 : 1 })}>
           <AppText style={{ flex: 1, color: palette.text, fontSize: 13, fontWeight: "700" }}>Open source credits</AppText>

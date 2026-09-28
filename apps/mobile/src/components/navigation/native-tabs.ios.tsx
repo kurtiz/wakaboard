@@ -1,9 +1,10 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { HapticPreset } from "../../constants/haptics";
 import { usePalette } from "../../theme";
 
 export function NativeTabNavigation() {
   const palette = usePalette();
-  return <NativeTabs tintColor={palette.primary} minimizeBehavior="never">
+  return <NativeTabs tintColor={palette.primary} minimizeBehavior="never" screenListeners={{ tabPress: (event) => { if (!event.data.isPrevented) void HapticPreset.selection(); } }}>
     <NativeTabs.Trigger name="(home)">
       <NativeTabs.Trigger.Icon sf={{ default: "house", selected: "house.fill" }} />
       <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>

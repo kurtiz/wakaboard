@@ -1,6 +1,6 @@
 import "../global.css";
 
-import { HotUpdater } from "@hot-updater/react-native";
+import { createDefaultResolver, HotUpdater } from "@hot-updater/react-native";
 import { Stack, usePathname } from "expo-router";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
@@ -10,6 +10,7 @@ import { pageHeaderOptions } from "../components/navigation/page-header-options"
 import { HapticPreset } from "../constants/haptics";
 import { DashboardProvider } from "../data/dashboard-context";
 import { LeaderboardProvider } from "../data/leaderboard-context";
+import { canCheckForOtaUpdate } from "../data/ota-preferences";
 import { FontProvider, useFontChoice } from "../font-choice";
 import { PaletteProvider, usePalette } from "../theme";
 
@@ -24,9 +25,19 @@ function Layout() {
 }
 
 const updateServerUrl = process.env.EXPO_PUBLIC_HOT_UPDATER_URL;
+const defaultUpdateResolver = updateServerUrl ? createDefaultResolver(updateServerUrl) : null;
 
 export default updateServerUrl
-  ? HotUpdater.wrap({ baseURL: updateServerUrl, updateStrategy: "appVersion" })(Layout)
+  ? HotUpdater.wrap({
+      resolver: {
+        checkUpdate: async (params) => {
+          if (!(await canCheckForOtaUpdate())) return null;
+          if (!defaultUpdateResolver?.checkUpdate) throw new Error("Hot Updater update resolver is unavailable.");
+          return defaultUpdateResolver.checkUpdate(params);
+        },
+      },
+      updateStrategy: "appVersion",
+    })(Layout)
   : Layout;
 
 function AppProviders() {
@@ -54,6 +65,7 @@ function AppStack({ palette }: { palette: ReturnType<typeof usePalette> }) {
   return <Stack screenOptions={{ headerShown: false, headerBackButtonDisplayMode: "minimal" }}>
     <Stack.Screen name="activity" options={{ ...pageHeaderOptions(palette, font), headerLargeTitleEnabled: false, title: "Activity" }} />
     <Stack.Screen name="credits" options={{ ...pageHeaderOptions(palette, font), headerLargeTitleEnabled: false, title: "Open source credits" }} />
+    <Stack.Screen name="updates" options={{ ...pageHeaderOptions(palette, font), headerLargeTitleEnabled: false, title: "App updates" }} />
     <Stack.Screen name="share/coding-week" options={{ ...pageHeaderOptions(palette, font), headerLargeTitleEnabled: false, title: "Coding week" }} />
     <Stack.Screen name="share/daily" options={{ ...pageHeaderOptions(palette, font), headerLargeTitleEnabled: false, title: "Coding day" }} />
     <Stack.Screen name="share/analytics" options={{ ...pageHeaderOptions(palette, font), headerLargeTitleEnabled: false, title: "Coding report" }} />
