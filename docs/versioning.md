@@ -13,7 +13,7 @@ WakaBoard's current app version is **1.0.0**. This is the development baseline, 
 
 The app version and native build number are separate. A rejected or replacement store build can keep the same app version while receiving a higher build number. `apps/mobile/app.json` keeps `ios.buildNumber` and `android.versionCode` at `1` as local build defaults; EAS ignores them for production builds. Before the first EAS production build on a platform, check any previously submitted store build number and seed EAS above it if needed. Settings reads the installed values through `expo-application`.
 
-Hot Updater currently uses the `appVersion` strategy. Deploy JavaScript-only updates to the installed app version and channel; keep the app version unchanged for these updates. Change the app version when a new native binary introduces a different native runtime so incompatible binaries cannot receive the same OTA bundle. Do not use a broad target such as `*` without checking native compatibility.
+Hot Updater currently uses the `appVersion` strategy. Deploy JavaScript-only updates to the installed app version and channel; keep the app version unchanged for these updates. Change the app version when a new native binary introduces a different native runtime so incompatible binaries cannot receive the same OTA bundle. Do not use a broad target such as `*` without checking native compatibility. Follow the [Hot Updater deployment guide](hot-updater.md) for the exact commands.
 
 ## When to change the app version
 

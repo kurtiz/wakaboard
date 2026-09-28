@@ -229,7 +229,7 @@ simulator, not a device or TestFlight; device distribution requires Apple signin
 When adding a native library or changing native configuration, rebuild the development client. Configure native behavior
 in `apps/mobile/app.json` and config plugins; generated `apps/mobile/ios` and `apps/mobile/android` directories are
 ignored. Hot Updater's Expo config plugin reapplies its native changes on each prebuild. Existing native artifacts do not
-include Hot Updater; build a new binary before deploying OTA updates.
+include Hot Updater; build a new binary before deploying OTA updates. See the [Hot Updater deployment guide](docs/hot-updater.md) for the project commands and checks.
 
 ## Configuration reference
 
