@@ -1,0 +1,316 @@
+{
+  "schemaVersion": 2,
+  "appName": "WakaBoard",
+  "themeId": "wakaboard-ember",
+  "fontId": "template-default",
+  "connectedCanvas": false,
+  "locales": [
+    "en"
+  ],
+  "locale": "en",
+  "device": "iphone",
+  "orientation": "portrait",
+  "appIcon": "/app-icon.png",
+  "slidesByDevice": {
+    "iphone": [
+      {
+        "id": "wakaboard-ios-analytics",
+        "layout": "hero",
+        "label": {
+          "en": "WAKABOARD  /  CODING INSIGHTS"
+        },
+        "headline": {
+          "en": "See your coding\nadd up."
+        },
+        "screenshot": "/screenshots/apple/iphone/en/01.png",
+        "transforms": {
+          "caption": {
+            "x": 112,
+            "y": 212,
+            "width": 1096,
+            "height": 520,
+            "rotation": 0,
+            "zIndex": 4
+          },
+          "device": {
+            "x": 140,
+            "y": 690,
+            "width": 1040,
+            "height": 2119,
+            "rotation": 0,
+            "zIndex": 3
+          }
+        },
+        "typography": {
+          "headlineScale": 1.08
+        }
+      },
+      {
+        "id": "wakaboard-ios-goal",
+        "layout": "no-device",
+        "label": {
+          "en": "02  /  DAILY GOALS"
+        },
+        "headline": {
+          "en": "Make every day\ncount."
+        },
+        "screenshot": "",
+        "inverted": true,
+        "transforms": {
+          "caption": {
+            "x": 112,
+            "y": 225,
+            "width": 1096,
+            "height": 570,
+            "rotation": 0,
+            "zIndex": 4
+          }
+        },
+        "typography": {
+          "headlineScale": 1.12
+        },
+        "imageElements": [
+          {
+            "id": "goal-focus",
+            "src": "/screenshots/apple/iphone/en/02.png",
+            "transform": {
+              "x": 0,
+              "y": 1110,
+              "width": 1320,
+              "height": 900,
+              "rotation": 0,
+              "zIndex": 5
+            },
+            "fit": "cover"
+          }
+        ]
+      },
+      {
+        "id": "wakaboard-ios-standing",
+        "layout": "device-top",
+        "label": {
+          "en": "03  /  LEADERBOARDS"
+        },
+        "headline": {
+          "en": "See how far\nyou’ve come."
+        },
+        "screenshot": "/screenshots/apple/iphone/en/02.png",
+        "transforms": {
+          "caption": {
+            "x": 112,
+            "y": 1610,
+            "width": 1096,
+            "height": 570,
+            "rotation": 0,
+            "zIndex": 4
+          },
+          "device": {
+            "x": 165,
+            "y": -910,
+            "width": 990,
+            "height": 2140,
+            "rotation": 0,
+            "zIndex": 3
+          }
+        },
+        "typography": {
+          "headlineScale": 1.13
+        }
+      },
+      {
+        "id": "wakaboard-ios-share",
+        "layout": "no-device",
+        "label": {
+          "en": "04  /  SHARE YOUR WEEK"
+        },
+        "headline": {
+          "en": "A week of code.\nWorth sharing."
+        },
+        "screenshot": "",
+        "inverted": true,
+        "transforms": {
+          "caption": {
+            "x": 112,
+            "y": 135,
+            "width": 1096,
+            "height": 580,
+            "rotation": 0,
+            "zIndex": 4
+          }
+        },
+        "typography": {
+          "headlineScale": 1.08
+        },
+        "imageElements": [
+          {
+            "id": "coding-week",
+            "src": "/screenshots/shared/coding-week-editorial.png",
+            "transform": {
+              "x": 130,
+              "y": 925,
+              "width": 1060,
+              "height": 1325,
+              "rotation": 0,
+              "zIndex": 5
+            },
+            "fit": "contain"
+          }
+        ]
+      }
+    ],
+    "android": [
+      {
+        "id": "wakaboard-android-analytics",
+        "layout": "hero",
+        "label": {
+          "en": "WAKABOARD  /  CODING INSIGHTS"
+        },
+        "headline": {
+          "en": "See your coding\nadd up."
+        },
+        "screenshot": "/screenshots/android/phone/en/01.png",
+        "inverted": true,
+        "transforms": {
+          "caption": {
+            "x": 75,
+            "y": 126,
+            "width": 930,
+            "height": 415,
+            "rotation": 0,
+            "zIndex": 4
+          },
+          "device": {
+            "x": 180,
+            "y": 545,
+            "width": 720,
+            "height": 1560,
+            "rotation": 0,
+            "zIndex": 3
+          }
+        },
+        "typography": {
+          "headlineScale": 1.05
+        }
+      },
+      {
+        "id": "wakaboard-android-goal",
+        "layout": "no-device",
+        "label": {
+          "en": "02  /  DAILY GOALS"
+        },
+        "headline": {
+          "en": "Make every day\ncount."
+        },
+        "screenshot": "",
+        "transforms": {
+          "caption": {
+            "x": 75,
+            "y": 155,
+            "width": 930,
+            "height": 400,
+            "rotation": 0,
+            "zIndex": 4
+          }
+        },
+        "typography": {
+          "headlineScale": 1.03
+        },
+        "imageElements": [
+          {
+            "id": "goal-focus",
+            "src": "/screenshots/android/phone/en/02.png",
+            "transform": {
+              "x": 0,
+              "y": 900,
+              "width": 1080,
+              "height": 780,
+              "rotation": 0,
+              "zIndex": 5
+            },
+            "fit": "cover"
+          }
+        ]
+      },
+      {
+        "id": "wakaboard-android-standing",
+        "layout": "device-top",
+        "label": {
+          "en": "03  /  LEADERBOARDS"
+        },
+        "headline": {
+          "en": "See how far\nyou’ve come."
+        },
+        "screenshot": "/screenshots/android/phone/en/02.png",
+        "inverted": true,
+        "transforms": {
+          "caption": {
+            "x": 75,
+            "y": 1220,
+            "width": 930,
+            "height": 470,
+            "rotation": 0,
+            "zIndex": 4
+          },
+          "device": {
+            "x": 120,
+            "y": -780,
+            "width": 840,
+            "height": 1820,
+            "rotation": 0,
+            "zIndex": 3
+          }
+        },
+        "typography": {
+          "headlineScale": 1.06
+        }
+      },
+      {
+        "id": "wakaboard-android-share",
+        "layout": "no-device",
+        "label": {
+          "en": "04  /  SHARE YOUR WEEK"
+        },
+        "headline": {
+          "en": "A week of code.\nWorth sharing."
+        },
+        "screenshot": "",
+        "transforms": {
+          "caption": {
+            "x": 75,
+            "y": 100,
+            "width": 930,
+            "height": 430,
+            "rotation": 0,
+            "zIndex": 4
+          }
+        },
+        "typography": {
+          "headlineScale": 1.02
+        },
+        "imageElements": [
+          {
+            "id": "coding-week",
+            "src": "/screenshots/shared/coding-week-editorial.png",
+            "transform": {
+              "x": 118,
+              "y": 610,
+              "width": 844,
+              "height": 1055,
+              "rotation": 0,
+              "zIndex": 5
+            },
+            "fit": "contain"
+          }
+        ]
+      }
+    ],
+    "ipad": [],
+    "tvos": [],
+    "watchos": [],
+    "carplay": [],
+    "mac": [],
+    "android-7": [],
+    "android-10": [],
+    "feature-graphic": []
+  }
+}

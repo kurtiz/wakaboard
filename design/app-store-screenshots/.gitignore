@@ -1,0 +1,25 @@
+node_modules
+.next
+out
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Local account captures include an identifiable name and profile photo.
+# The exported store images frame those details out.
+public/screenshots/apple/iphone/en/02.png
+public/screenshots/android/phone/en/02.png
+public/screenshots/uploaded/
+
+# Superseded single-image exports; the numbered sets and bundles are canonical.
+exports/wakaboard-ios.png
+exports/wakaboard-android.png
+
+# Fonts imported from the editor toolbar may carry separate licences.
+public/fonts/imported/*
+!public/fonts/imported/.gitkeep
